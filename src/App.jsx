@@ -8,11 +8,16 @@ import { Projects } from "./components/sections/Projects.jsx";
 import { Skills } from "./components/sections/Skills.jsx";
 import { Contact } from "./components/sections/Contact.jsx";
 import { Writing } from "./components/sections/Writing.jsx";
+import { useMousePosition } from "./hooks/useMousePosition.js";
+import { useReducedMotion } from "./hooks/useReducedMotion.js";
 
 // Set to false to hide the Writing section
 const SHOW_WRITING = true;
 
 export default function App() {
+  const { x, y } = useMousePosition();
+  const prefersReduced = useReducedMotion();
+
   return (
     <div className="min-h-screen bg-navy-950 text-slate-200 relative">
       {/* Fixed gradient background */}
@@ -20,9 +25,19 @@ export default function App() {
         className="fixed inset-0 pointer-events-none z-0"
         style={{
           background:
-            "linear-gradient(135deg, #060818 0%, #0a0f2e 45%, #140a2e 75%, #090f28 100%)",
+            "linear-gradient(135deg, #0b1024 0%, #111942 45%, #1c1240 75%, #101838 100%)",
         }}
       />
+
+      {/* Cursor glow — hidden on mobile and when reduced motion is preferred */}
+      {!prefersReduced && (
+        <div
+          className="fixed inset-0 pointer-events-none z-[5] hidden md:block"
+          style={{
+            background: `radial-gradient(600px circle at ${x}px ${y}px, rgba(56,189,248,0.1), transparent 70%)`,
+          }}
+        />
+      )}
 
       <Navbar />
 

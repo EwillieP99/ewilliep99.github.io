@@ -9,7 +9,7 @@
   }
 
   body {
-    background-color: #060818;
+    background-color: #0b1024;
     color: #e2e8f0;
     font-family: "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -21,7 +21,7 @@
     width: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #060818;
+    background: #0b1024;
   }
   ::-webkit-scrollbar-thumb {
     background: rgba(56, 189, 248, 0.3);
@@ -35,21 +35,21 @@
 @layer components {
   /* Frosted-glass card */
   .glass-card {
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 1rem;
-    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.4),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   }
 
   /* Featured card — subtle blue glow border */
   .glass-card-featured {
-    border-color: rgba(56, 189, 248, 0.25);
-    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(56, 189, 248, 0.15),
-      inset 0 0 24px rgba(56, 189, 248, 0.03);
+    border-color: rgba(56, 189, 248, 0.35);
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(56, 189, 248, 0.2),
+      inset 0 0 32px rgba(56, 189, 248, 0.05);
   }
 
   /* Terminal / metrics card */
@@ -81,13 +81,13 @@
     font-size: 0.875rem;
     color: #060818;
     background: linear-gradient(135deg, #38bdf8, #a855f7);
-    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.3);
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);
     transition: box-shadow 0.3s ease, transform 0.2s ease;
     text-decoration: none;
     white-space: nowrap;
   }
   .btn-primary:hover {
-    box-shadow: 0 8px 32px rgba(56, 189, 248, 0.5);
+    box-shadow: 0 8px 36px rgba(56, 189, 248, 0.55);
     transform: translateY(-1px);
   }
 
@@ -171,6 +171,26 @@
     border-color: rgba(255, 255, 255, 0.12);
     color: rgba(226, 232, 240, 0.5);
   }
+
+  /* Cursor-following glow overlay for glass cards */
+  .glass-card-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(
+      400px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+      rgba(56, 189, 248, 0.15),
+      transparent 70%
+    );
+    z-index: 0;
+  }
+
+  .glass-card:hover .glass-card-glow {
+    opacity: 1;
+  }
 }
 
 /* Ambient background orbs — purely decorative */
@@ -179,6 +199,6 @@
   border-radius: 9999px;
   pointer-events: none;
   filter: blur(80px);
-  opacity: 0.12;
+  opacity: 0.18;
   z-index: 0;
 }

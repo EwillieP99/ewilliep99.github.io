@@ -1,6 +1,7 @@
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { CTAButton } from "../ui/CTAButton.jsx";
 import { meta } from "../../data/meta.js";
+import { useReducedMotion } from "../../hooks/useReducedMotion.js";
 
 const container = {
   hidden: { opacity: 0 },
@@ -16,20 +17,44 @@ const item = {
 };
 
 export function Hero() {
+  const prefersReduced = useReducedMotion();
+  const { scrollY } = useScroll();
+
+  const orb1Y = useTransform(scrollY, [0, 800], [0, 240]);   // 0.3x speed
+  const orb2Y = useTransform(scrollY, [0, 800], [0, 120]);   // 0.15x speed
+  const orb3Y = useTransform(scrollY, [0, 800], [0, 400]);   // 0.5x speed
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 overflow-hidden">
-      {/* Ambient orbs */}
-      <div
+      {/* Ambient orbs — parallax on scroll */}
+      <motion.div
         className="orb w-[500px] h-[500px] bg-purple-500"
-        style={{ top: "-10%", right: "-15%", animationDelay: "0s" }}
+        style={{
+          top: "-10%",
+          right: "-15%",
+          animationDelay: "0s",
+          y: prefersReduced ? 0 : orb1Y,
+        }}
       />
-      <div
+      <motion.div
         className="orb w-[400px] h-[400px] bg-cyan-400"
-        style={{ bottom: "5%", left: "-10%", animationDelay: "3s", opacity: 0.09 }}
+        style={{
+          bottom: "5%",
+          left: "-10%",
+          animationDelay: "3s",
+          opacity: 0.14,
+          y: prefersReduced ? 0 : orb2Y,
+        }}
       />
-      <div
+      <motion.div
         className="orb w-[300px] h-[300px] bg-accent-blue"
-        style={{ top: "40%", left: "25%", animationDelay: "1.5s", opacity: 0.07 }}
+        style={{
+          top: "40%",
+          left: "25%",
+          animationDelay: "1.5s",
+          opacity: 0.12,
+          y: prefersReduced ? 0 : orb3Y,
+        }}
       />
 
       <motion.div
