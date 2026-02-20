@@ -2,9 +2,9 @@
 // Replace every placeholder with your real info before deploying.
 
 export const meta = {
-  name: "Your Name",               // e.g. "Emma Williams"
-  firstName: "Your First Name",    // e.g. "Emma"
-  initials: "YN",                  // e.g. "EW"
+  name: "Ethan Pecora",               // e.g. "Emma Williams"
+  firstName: "Ethan",    // e.g. "Emma"
+  initials: "EP",                  // e.g. "EW"
 
   tagline:
     "Tech-forward, AI-fluent student-operator who builds communities, sells ideas, and bridges business, data, and narrative.",
@@ -19,13 +19,13 @@ export const meta = {
     "Open to internships and full-time roles in tech sales, GTM, and AI strategy for B2B SaaS. Based in Gainesville, FL — relocatable.",
 
   // ── Contact ──────────────────────────────────────────────────────────────────
-  email: "your@email.com",
-  phone: "",                       // optional
+  email: "ethan.pecora@ufl.edu",
+  phone: "6303346574",                       // optional
 
   // ── Links ────────────────────────────────────────────────────────────────────
-  linkedinUrl: "https://linkedin.com/in/YOUR_HANDLE",
+  linkedinUrl: "https://linkedin.com/in/ethan-pecora",
   githubUrl: "https://github.com/ewilliep99",
-  twitterUrl: "",                  // optional, e.g. "https://x.com/HANDLE"
+  twitterUrl: "EwillieP",                  // optional, e.g. "https://x.com/HANDLE"
   calendlyUrl: "https://calendly.com/YOUR_HANDLE",
 
   // ── Assets ───────────────────────────────────────────────────────────────────
