@@ -25,6 +25,12 @@ export default {
           purple: "#a855f7",
           cyan: "#22d3ee",
         },
+        cyber: {
+          blue: "#2b4bee",
+          "blue-light": "#4f6ef7",
+          surface: "rgba(15, 20, 40, 0.95)",
+          card: "rgba(20, 25, 50, 0.8)",
+        },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
@@ -43,6 +49,8 @@ export default {
         "cursor-blink": "blink 1s step-end infinite",
         "gradient-shift": "gradientShift 8s ease infinite",
         "spin-slow": "spin 20s linear infinite",
+        "scan-line": "scanLine 3s linear infinite",
+        "hud-flicker": "hudFlicker 4s ease-in-out infinite",
       },
       keyframes: {
         float: {
@@ -56,6 +64,14 @@ export default {
         gradientShift: {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
+        },
+        scanLine: {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(100%)" },
+        },
+        hudFlicker: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.8" },
         },
       },
       boxShadow: {

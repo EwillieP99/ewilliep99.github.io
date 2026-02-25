@@ -71,7 +71,7 @@ export function Reel() {
             >
               <video
                 ref={videoRef}
-                src="/assets/AI Club HiPerGator (1).mp4"
+                src="/assets/videos/aiclubhipergatortour.mp4"
                 poster={meta.avatar}   // uses your headshot as thumbnail; swap to a poster image if you have one
                 preload="metadata"
                 playsInline

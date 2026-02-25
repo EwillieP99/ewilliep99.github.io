@@ -5,25 +5,27 @@ import { meta } from "../../data/meta.js";
 
 // ─── EDIT THIS CONTENT ─────────────────────────────────────────────────────────
 const ORIGIN_STORY = `
-  I didn't take the straight road. I started in real estate, pivoted to computer science,
-  then entrepreneurship, then professional selling, and finally landed in Mass Communications —
-  not because I was lost, but because I was looking for the intersection of business, technology,
-  and storytelling. Turns out, that intersection is exactly where I want to operate.
+  I didn't take the straight road. I went from real estate to computer science to
+  entrepreneurship to professional selling and finally landed in Mass Communications —
+  not because I was lost, but because I was building a toolkit. Each pivot taught me
+  something: how products get built, how they get sold, and how complex ideas become
+  stories that move people to action.
 `.trim();
 
 const ORIGIN_STORY_2 = `
-  That path gave me something most people don't have at 21: a real feel for how products get
-  built, how they get sold, and how they get explained. I've built systems to run my own life,
-  led teams to grow a campus AI network, and learned to distill complicated things into language
-  that moves people to action.
+  That winding path turned into real results. I generated $110K in ARR as a sales
+  development intern at Geotarget, drove 400+ new users at Perplexity AI with a 67%
+  conversion rate across 15 workshops, and organized a 500+ attendee AI mixer that
+  brought together 8 student orgs, 12 campus partners, and 5 industry sponsors. I sell,
+  I build systems, and I get things across the finish line.
 `.trim();
 
 // Short operating-style bullets
 const TRAITS = [
-  "Systems thinker — I build processes before I scale effort",
-  "High-trust communicator — I meet people where they are",
-  "Bias toward action — I prefer learning by doing over over-planning",
-  "AI-fluent — I use AI as leverage, not a crutch",
+  "Solution Seller — I listen first, then prescribe",
+  "Public Speaker — 15 workshops, 600+ students, comfortable on stage",
+  "AI-Fluent — I use AI as daily leverage, not a buzzword",
+  "Systems Builder — I create repeatable processes before I scale effort",
 ];
 // ───────────────────────────────────────────────────────────────────────────────
 

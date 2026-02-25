@@ -191,6 +191,22 @@
   .glass-card:hover .glass-card-glow {
     opacity: 1;
   }
+
+  /* Timeline year marker — active pulse */
+  .timeline-year-dot-active {
+    animation: timelinePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes timelinePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .timeline-year-dot-active {
+      animation: none;
+    }
+  }
 }
 
 /* Ambient background orbs — purely decorative */
@@ -201,4 +217,106 @@
   filter: blur(80px);
   opacity: 0.18;
   z-index: 0;
+}
+
+/* ===== CyberPhotos Gallery ===== */
+
+/* Gallery sidebar */
+.gallery-sidebar {
+  background: rgba(10, 15, 46, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(43, 75, 238, 0.15);
+}
+
+/* Gallery card with HUD overlay */
+.cyber-card {
+  background: rgba(20, 25, 50, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(43, 75, 238, 0.15);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.cyber-card:hover {
+  border-color: rgba(43, 75, 238, 0.5);
+  box-shadow: 0 0 30px rgba(43, 75, 238, 0.15);
+}
+
+/* HUD corner brackets */
+.hud-corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: rgba(43, 75, 238, 0.6);
+}
+.hud-corner-tl {
+  top: 8px;
+  left: 8px;
+  border-top: 1px solid;
+  border-left: 1px solid;
+}
+.hud-corner-tr {
+  top: 8px;
+  right: 8px;
+  border-top: 1px solid;
+  border-right: 1px solid;
+}
+.hud-corner-bl {
+  bottom: 8px;
+  left: 8px;
+  border-bottom: 1px solid;
+  border-left: 1px solid;
+}
+.hud-corner-br {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 1px solid;
+  border-right: 1px solid;
+}
+
+/* Gallery scrollbar */
+.gallery-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.gallery-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.gallery-scroll::-webkit-scrollbar-thumb {
+  background: rgba(43, 75, 238, 0.3);
+  border-radius: 2px;
+}
+.gallery-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(43, 75, 238, 0.6);
+}
+
+/* Storage bar */
+.storage-bar-bg {
+  background: rgba(43, 75, 238, 0.15);
+}
+.storage-bar-fill {
+  background: linear-gradient(90deg, #2b4bee, #a855f7);
+}
+
+/* Scan line overlay on photo cards */
+.scan-line-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    transparent 0%,
+    rgba(43, 75, 238, 0.03) 50%,
+    transparent 100%
+  );
+  animation: scanLine 3s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes scanLine {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
 }

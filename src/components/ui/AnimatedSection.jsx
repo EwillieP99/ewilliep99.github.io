@@ -6,7 +6,7 @@ import { useReducedMotion } from "../../hooks/useReducedMotion.js";
  * Wraps any section in a scroll-triggered fade-up animation.
  * Respects prefers-reduced-motion automatically.
  */
-export function AnimatedSection({ children, delay = 0, className = "" }) {
+export function AnimatedSection({ children, delay = 0, className = "", id }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-80px" });
   const prefersReduced = useReducedMotion();
@@ -14,6 +14,7 @@ export function AnimatedSection({ children, delay = 0, className = "" }) {
   return (
     <motion.div
       ref={ref}
+      id={id}
       className={className}
       initial={prefersReduced ? false : { opacity: 0, y: 28 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}

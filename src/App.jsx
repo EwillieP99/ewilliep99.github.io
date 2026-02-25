@@ -1,3 +1,4 @@
+import { Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/layout/Navbar.jsx";
 import { Footer } from "./components/layout/Footer.jsx";
 import { Hero } from "./components/sections/Hero.jsx";
@@ -8,13 +9,14 @@ import { Projects } from "./components/sections/Projects.jsx";
 import { Skills } from "./components/sections/Skills.jsx";
 import { Contact } from "./components/sections/Contact.jsx";
 import { Writing } from "./components/sections/Writing.jsx";
+import { CyberPhotosPage } from "./components/gallery/CyberPhotosPage.jsx";
 import { useMousePosition } from "./hooks/useMousePosition.js";
 import { useReducedMotion } from "./hooks/useReducedMotion.js";
 
 // Set to false to hide the Writing section
 const SHOW_WRITING = true;
 
-export default function App() {
+function HomePage() {
   const { x, y } = useMousePosition();
   const prefersReduced = useReducedMotion();
 
@@ -54,5 +56,14 @@ export default function App() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/photos" element={<CyberPhotosPage />} />
+    </Routes>
   );
 }

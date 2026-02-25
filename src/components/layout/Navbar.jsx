@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useScrollSpy } from "../../hooks/useScrollSpy.js";
 import { meta } from "../../data/meta.js";
 
@@ -68,6 +69,12 @@ export function Navbar() {
                 {link.label}
               </button>
             ))}
+            <Link
+              to="/photos"
+              className="nav-link hover:text-accent-blue transition-colors"
+            >
+              Photos
+            </Link>
           </nav>
 
           {/* Desktop CTA */}
@@ -122,10 +129,23 @@ export function Navbar() {
                 {link.label}
               </motion.button>
             ))}
-            <motion.a
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: NAV_LINKS.length * 0.07 }}
+            >
+              <Link
+                to="/photos"
+                className="text-2xl font-semibold text-slate-200 hover:text-accent-blue transition-colors"
+                onClick={() => setMenuOpen(false)}
+              >
+                Photos
+              </Link>
+            </motion.div>
+            <motion.a
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (NAV_LINKS.length + 1) * 0.07 }}
               href={meta.resumePdf}
               download
               className="btn-primary text-sm mt-4"

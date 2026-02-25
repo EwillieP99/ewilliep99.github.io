@@ -1,39 +1,47 @@
-// ─── FILL THESE IN ────────────────────────────────────────────────────────────
-// Replace every placeholder with your real info before deploying.
+// ─── SITE META ────────────────────────────────────────────────────────────────
 
 export const meta = {
-  name: "Ethan Pecora",               // e.g. "Emma Williams"
-  firstName: "Ethan",    // e.g. "Emma"
-  initials: "EP",                  // e.g. "EW"
+  name: "Ethan Pecora",
+  firstName: "Ethan",
+  initials: "EP",
 
   tagline:
-    "Tech-forward, AI-fluent student-operator who builds communities, sells ideas, and bridges business, data, and narrative.",
+    "Sales results meet AI fluency — $110K ARR generated, 400+ users driven, communities built from scratch.",
 
   heroOneLiner:
     "I build communities, sell ideas, and make AI make sense.",
 
   heroSub:
-    "Mass Comm student at UF → AI-first tech sales and community builder.",
+    "Business Administration @ UF · Graduating Fall 2026 · AI Certificate · Tech sales & GTM operator.",
 
   recruiterBlurb:
-    "Open to internships and full-time roles in tech sales, GTM, and AI strategy for B2B SaaS. Based in Gainesville, FL — relocatable.",
+    "Generated $110K ARR in B2B SaaS sales, drove 400+ new users at Perplexity AI with a 67% conversion rate, and organized a 500+ attendee AI mixer. Graduating Fall 2026 with an AI Certificate from the University of Florida. Open to full-time roles in tech sales, GTM, and AI strategy.",
 
-  // ── Contact ──────────────────────────────────────────────────────────────────
+  // ── Education ───────────────────────────────────────────────────────────────
+  education: {
+    degree: "B.S. Business Administration",
+    university: "University of Florida",
+    gradDate: "Fall 2026",
+    certificate: "Artificial Intelligence Certificate",
+    certCourses: ["AI Fundamentals", "Business Analytics & AI", "AI Ethics"],
+  },
+
+  // ── Contact ─────────────────────────────────────────────────────────────────
   email: "ethan.pecora@ufl.edu",
-  phone: "6303346574",                       // optional
+  phone: "6303346574",
 
-  // ── Links ────────────────────────────────────────────────────────────────────
+  // ── Links ───────────────────────────────────────────────────────────────────
   linkedinUrl: "https://linkedin.com/in/ethan-pecora",
   githubUrl: "https://github.com/ewilliep99",
-  twitterUrl: "EwillieP",                  // optional, e.g. "https://x.com/HANDLE"
+  twitterUrl: "EwillieP",
   calendlyUrl: "https://calendly.com/YOUR_HANDLE",
 
-  // ── Assets ───────────────────────────────────────────────────────────────────
-  resumePdf: "/resume.pdf",        // place your PDF in public/resume.pdf
-  avatar: "/assets/profile.jpg",   // replace with your own photo in public/assets/
+  // ── Assets ──────────────────────────────────────────────────────────────────
+  resumePdf: "/resume.pdf",
+  avatar: "/assets/IMG_5245.jpeg",
 
-  // ── Meta ─────────────────────────────────────────────────────────────────────
+  // ── Meta ────────────────────────────────────────────────────────────────────
   university: "University of Florida",
-  major: "Mass Communications",
+  major: "Business Administration",
   location: "Gainesville, FL",
 };

@@ -12,6 +12,28 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <title>Portfolio</title>
+    <!-- GitHub Pages SPA redirect decoder — runs before React mounts -->
+    <script>
+      (function () {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.href) {
+          history.replaceState(null, null, redirect);
+        } else {
+          var q = window.location.search;
+          if (q.length > 2 && q[1] === "/") {
+            var decoded =
+              window.location.pathname.slice(0, -1) +
+              q
+                .slice(1)
+                .split("&")
+                .join("?")
+                .replace(/~and~/g, "&");
+            window.history.replaceState(null, null, decoded + window.location.hash);
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

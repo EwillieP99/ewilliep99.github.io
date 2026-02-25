@@ -1,3 +1,4 @@
+
 // ─── PROJECTS ─────────────────────────────────────────────────────────────────
 // type: "terminal" renders as a dark metrics card; "card" renders as glass card.
 // Add links: [] if there are no live links.
@@ -11,9 +12,9 @@ export const projects = [
     tags: ["Notion", "Systems Design", "Productivity", "Ops"],
     type: "terminal",
     metrics: [
-      { label: "Templates Active", value: "12" },        // ← update
-      { label: "Weekly Review Streak", value: "XX wks" }, // ← update
-      { label: "Projects Tracked", value: "XX" },         // ← update
+      { label: "Templates Active", value: "12" },
+      { label: "Weekly Review Streak", value: "30+ wks" },
+      { label: "Projects Tracked", value: "25+" },
     ],
     links: [],
     featured: true,
@@ -22,7 +23,7 @@ export const projects = [
     id: "comet-dashboards",
     title: "Comet Analytics Dashboards",
     description:
-      "Custom dashboards tracking ambassador performance and campus engagement metrics across the Perplexity campus network. Built to surface the data needed to coach individuals and prioritize school-level resources.",
+      "Custom dashboards tracking ambassador performance and campus engagement metrics across the Perplexity campus network. Tracked 400+ user activations, surfacing the data needed to coach individuals and prioritize school-level resources.",
     tags: ["Analytics", "GTM", "Data Visualization", "Comet"],
     type: "card",
     links: [],
@@ -32,7 +33,7 @@ export const projects = [
     id: "campus-playbook",
     title: "Campus GTM Playbook",
     description:
-      "A documented, repeatable playbook for launching and scaling a campus ambassador program — from zero to 15+ members across 5 schools. Covers recruiting scripts, onboarding workflows, weekly cadences, and success metrics.",
+      "A documented, repeatable playbook for launching and scaling a campus ambassador program — from zero to 15+ ambassadors across 5 universities. Covers recruiting scripts, onboarding workflows, weekly cadences, and documented KPIs that drove 67% conversion rates.",
     tags: ["GTM", "Documentation", "Community", "Playbook"],
     type: "card",
     links: [],
