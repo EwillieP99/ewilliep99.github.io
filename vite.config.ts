@@ -10,6 +10,7 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    dedupe: ["react", "react-dom", "three"],   // ← THIS FIXES THE THREE.JS ERROR
   },
   build: {
     outDir: "dist",

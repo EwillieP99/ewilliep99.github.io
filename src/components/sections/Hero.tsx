@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { ChevronDown, Download, Calendar } from "lucide-react";
 import { bio } from "@/data/bio";
 import { Button } from "@/components/ui/Button";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { GlitchText } from "@/components/effects/GlitchText";
 import { ParticleField } from "@/components/effects/ParticleField";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -29,9 +30,11 @@ export function Hero() {
     >
       {/* 3D Scene (desktop only, lazy-loaded) */}
       <div className="hidden lg:block">
-        <Suspense fallback={null}>
-          <HeroScene />
-        </Suspense>
+        <ErrorBoundary fallback={<ParticleField count={60} />}>
+          <Suspense fallback={null}>
+            <HeroScene />
+          </Suspense>
+        </ErrorBoundary>
       </div>
 
       {/* Mobile/tablet particle fallback */}
