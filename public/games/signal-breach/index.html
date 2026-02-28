@@ -554,11 +554,8 @@
       updateStats();
       resetComboDecay();
 
-      // Next word after brief flash
-      setTimeout(() => {
-        if (!gameRunning) return;
-        nextWord();
-      }, 300);
+      // Next word instantly
+      nextWord();
     }
 
     function handleMistake() {
