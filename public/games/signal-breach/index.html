@@ -109,6 +109,14 @@
     }
 
     /* ═══════════════════════════════════════════════════════
+       PAUSE BLUR
+       ═══════════════════════════════════════════════════════ */
+    .game-blurred {
+      filter: blur(4px);
+      transition: filter 0.2s ease;
+    }
+
+    /* ═══════════════════════════════════════════════════════
        PARTICLE BURST (CSS-only)
        ═══════════════════════════════════════════════════════ */
     .particle {
@@ -121,6 +129,19 @@
     @keyframes particleBurst {
       0%   { opacity: 1; transform: translate(0, 0) scale(1); }
       100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       PAUSE MENU BUTTONS
+       ═══════════════════════════════════════════════════════ */
+    .pause-btn {
+      transition: all 0.15s ease;
+    }
+    .pause-btn:hover {
+      transform: scale(1.05);
+    }
+    .pause-btn:active {
+      transform: scale(0.95);
     }
 
     /* ═══════════════════════════════════════════════════════
@@ -150,10 +171,10 @@
   <div id="game-container" class="max-w-3xl w-full terminal rounded-xl overflow-hidden relative">
 
     <!-- ─── Title Bar ─── -->
-    <div class="bg-black border-b border-cyan-400 p-3 flex items-center justify-between text-xl">
+    <div id="title-bar" class="bg-black border-b border-cyan-400 p-3 flex items-center justify-between text-xl">
       <div class="flex items-center gap-3">
         <span class="text-red-500 animate-pulse">●</span>
-        <span class="neon-cyan">SIGNAL BREACH v1.1</span>
+        <span class="neon-cyan">SIGNAL BREACH v1.2</span>
       </div>
       <div class="flex gap-4 text-sm">
         <span>WAVE <span id="wave" class="text-white">1</span></span>
@@ -162,7 +183,8 @@
         <span>COMBO <span id="combo" class="text-white">x1.0</span></span>
         <span>HIGH <span id="high-score" class="text-white">00000</span></span>
       </div>
-      <button onclick="location.reload()" class="text-xs px-3 py-1 border border-red-500 hover:bg-red-500/20">ABORT</button>
+      <button onclick="abortGame()" id="abort-btn"
+              class="text-xs px-3 py-1 border border-red-500 hover:bg-red-500/20 transition-all">ABORT</button>
     </div>
 
     <!-- ─── Game Area ─── -->
@@ -188,7 +210,7 @@
 
       <!-- Hint -->
       <div id="hint-bar" class="text-center mt-2 text-cyan-400/60 text-sm">
-        TYPE TO DECODE • ESC TO ABORT • P TO PAUSE
+        TYPE TO DECODE • ESC TO PAUSE
       </div>
     </div>
 
@@ -212,22 +234,51 @@
 
     <!-- ─── Instructions Overlay ─── -->
     <div id="instructions-overlay" class="hidden absolute inset-0 bg-black/95 flex items-center justify-center flex-col z-40 p-8">
-      <div class="text-4xl neon-cyan mb-6">SIGNAL BREACH v1.1</div>
+      <div class="text-4xl neon-cyan mb-6">SIGNAL BREACH v1.2</div>
       <div class="text-xl text-cyan-400/80 text-center space-y-3 max-w-md">
         <p class="text-green-400 text-2xl mb-4">// MISSION BRIEF //</p>
         <p>Intercept corrupted signals by typing the target word.</p>
         <p>Characters light <span class="text-green-400">GREEN</span> when correct, <span class="text-red-500">RED</span> when wrong.</p>
         <p>Word auto-completes on final correct character.</p>
-        <p>Maintain CORE INTEGRITY — it drains every second.</p>
-        <p class="text-pink-400 mt-4">Combo multiplier increases with consecutive hits.</p>
+        <p>Maintain CORE INTEGRITY — it drains constantly.</p>
+        <p>Wrong characters break your combo and cost 8% integrity!</p>
+        <p class="text-pink-400 mt-4">Press ESC to pause. Combo caps at x4.0.</p>
       </div>
       <div id="instructions-countdown" class="text-3xl mt-6 neon-magenta"></div>
     </div>
 
-    <!-- ─── Pause Overlay ─── -->
-    <div id="pause-overlay" class="hidden absolute inset-0 bg-black/90 flex items-center justify-center flex-col z-30">
-      <div class="text-5xl neon-cyan mb-4">PAUSED</div>
-      <div class="text-xl text-cyan-400/60">Press P to resume</div>
+    <!-- ─── Pause Menu Overlay ─── -->
+    <div id="pause-menu" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center flex-col z-40"
+         style="backdrop-filter: blur(2px);">
+      <div class="text-5xl neon-cyan mb-2">SYSTEM PAUSED</div>
+      <div class="text-cyan-400/50 text-lg mb-6">// SIGNAL BREACH v1.2 //</div>
+
+      <!-- Wave goal hint -->
+      <div id="pause-wave-goal" class="text-pink-400 text-xl mb-8 text-center"></div>
+
+      <div class="flex flex-col gap-4 w-64">
+        <button onclick="resumeFromPause()" id="resume-btn"
+                class="pause-btn neon-cyan px-8 py-3 text-2xl border-2 border-cyan-400 hover:bg-cyan-400/20 text-center">
+          RESUME
+        </button>
+        <button onclick="restartFromPause()"
+                class="pause-btn px-8 py-3 text-xl border border-yellow-500 text-yellow-500 hover:bg-yellow-500/20 text-center">
+          RESTART RUN
+        </button>
+        <button onclick="quitToMenu()"
+                class="pause-btn px-8 py-3 text-xl border border-red-500 text-red-500 hover:bg-red-500/20 text-center">
+          QUIT TO MENU
+        </button>
+      </div>
+
+      <div class="text-cyan-400/30 text-sm mt-6">Press ESC to resume</div>
+    </div>
+
+    <!-- ─── Resume Countdown Overlay ─── -->
+    <div id="resume-countdown" class="hidden absolute inset-0 bg-black/85 flex items-center justify-center flex-col z-45"
+         style="z-index: 45;">
+      <div id="resume-countdown-text" class="text-7xl neon-cyan"></div>
+      <div class="text-cyan-400/60 text-xl mt-4">GET READY</div>
     </div>
 
   </div>
@@ -269,8 +320,10 @@
     let integrity = 100;
     let gameRunning = false;
     let paused = false;
+    let resuming = false;
     let drainTimer = null;
     let comboDecayTimer = null;
+    let spawnDelayTimer = null;
 
     let wordsCleared = 0;
     let totalTyped = 0;
@@ -300,7 +353,11 @@
     const gameArea          = document.getElementById('game-area');
     const gameContainer     = document.getElementById('game-container');
     const instructionsOverlay = document.getElementById('instructions-overlay');
-    const pauseOverlay      = document.getElementById('pause-overlay');
+    const pauseMenu         = document.getElementById('pause-menu');
+    const resumeCountdown   = document.getElementById('resume-countdown');
+    const resumeCountdownText = document.getElementById('resume-countdown-text');
+    const pauseWaveGoal     = document.getElementById('pause-wave-goal');
+    const titleBar          = document.getElementById('title-bar');
 
     /* ─────────────────────────────────────────────────────
        AUDIO (Web Audio API beeps)
@@ -331,20 +388,23 @@
     function sfxMistake() { playBeep(200, 0.2, 0.08); }
     function sfxWaveUp()  { playBeep(660, 0.08, 0.05); setTimeout(() => playBeep(880, 0.08, 0.05), 80); setTimeout(() => playBeep(1100, 0.15, 0.05), 160); }
     function sfxGameOver(){ playBeep(440, 0.15, 0.06); setTimeout(() => playBeep(330, 0.15, 0.06), 150); setTimeout(() => playBeep(220, 0.3, 0.06), 300); }
+    function sfxCountdown(){ playBeep(600, 0.08, 0.04); }
+    function sfxCountdownGo(){ playBeep(900, 0.12, 0.06); setTimeout(() => playBeep(1200, 0.12, 0.06), 80); }
 
     /* ─────────────────────────────────────────────────────
-       WORD SELECTION
+       WORD SELECTION (updated difficulty curve)
        ───────────────────────────────────────────────────── */
     function selectWordForWave() {
       let pool;
       if (wave <= 3) {
+        // Waves 1-3: only short
         pool = WORD_POOL.short;
-      } else if (wave <= 7) {
-        // medium + occasional short
-        pool = Math.random() < 0.2 ? WORD_POOL.short : WORD_POOL.medium;
+      } else if (wave <= 6) {
+        // Waves 4-6: 70% medium + 30% short
+        pool = Math.random() < 0.3 ? WORD_POOL.short : WORD_POOL.medium;
       } else {
-        // long + occasional medium
-        pool = Math.random() < 0.25 ? WORD_POOL.medium : WORD_POOL.long;
+        // Waves 7+: 70% long + 30% medium
+        pool = Math.random() < 0.3 ? WORD_POOL.medium : WORD_POOL.long;
       }
 
       let word;
@@ -358,6 +418,13 @@
       if (recentWords.length > 6) recentWords.shift();
 
       return word;
+    }
+
+    /* ─────────────────────────────────────────────────────
+       SPAWN DELAY (gets faster per wave)
+       ───────────────────────────────────────────────────── */
+    function getSpawnDelay() {
+      return Math.max(600, 1800 - (wave - 1) * 80);
     }
 
     /* ─────────────────────────────────────────────────────
@@ -385,7 +452,7 @@
         const correct = i < currentWord.length && typed[i] === currentWord[i];
         typedHtml += `<span class="${correct ? 'char-correct' : 'char-wrong'}">${typed[i]}</span>`;
       }
-      if (gameRunning && !paused) {
+      if (gameRunning && !paused && !resuming) {
         typedHtml += '<span class="text-cyan-400 animate-pulse">_</span>';
       }
       typedDisplayEl.innerHTML = typedHtml;
@@ -458,11 +525,11 @@
     }
 
     /* ─────────────────────────────────────────────────────
-       SUCCESS / MISTAKE / TIMEOUT HANDLERS
+       SUCCESS / MISTAKE HANDLERS
        ───────────────────────────────────────────────────── */
     function handleSuccess() {
       wordsCleared++;
-      combo = Math.min(5, combo + 0.3);
+      combo = Math.min(4, combo + 0.3);
       lastSuccessTime = Date.now();
 
       // Score: shorter time bonus + wave bonus * combo
@@ -497,11 +564,12 @@
       updateStats();
       resetComboDecay();
 
-      // Next word after brief flash
-      setTimeout(() => {
-        if (!gameRunning) return;
+      // Next word after spawn delay
+      clearTimeout(spawnDelayTimer);
+      spawnDelayTimer = setTimeout(() => {
+        if (!gameRunning || paused) return;
         nextWord();
-      }, 300);
+      }, getSpawnDelay());
     }
 
     function handleMistake() {
@@ -530,24 +598,24 @@
       }
 
       // Give new word after mistake on Enter
-      setTimeout(() => {
-        if (!gameRunning) return;
+      clearTimeout(spawnDelayTimer);
+      spawnDelayTimer = setTimeout(() => {
+        if (!gameRunning || paused) return;
         nextWord();
       }, 400);
     }
 
     /* ─────────────────────────────────────────────────────
-       COMBO DECAY
+       COMBO DECAY (0.5x every 2 seconds, cap x4.0)
        ───────────────────────────────────────────────────── */
     function resetComboDecay() {
-      clearTimeout(comboDecayTimer);
-      comboDecayTimer = setTimeout(() => {
-        if (gameRunning && !paused && combo > 1) {
-          combo = Math.max(1, combo - 0.3);
+      clearInterval(comboDecayTimer);
+      comboDecayTimer = setInterval(() => {
+        if (gameRunning && !paused && !resuming && combo > 1) {
+          combo = Math.max(1, combo - 0.5);
           updateStats();
-          resetComboDecay();
         }
-      }, 3000);
+      }, 2000);
     }
 
     /* ─────────────────────────────────────────────────────
@@ -564,23 +632,24 @@
     }
 
     /* ─────────────────────────────────────────────────────
-       INTEGRITY DRAIN
+       INTEGRITY DRAIN (0.5% per 100ms, +0.2% per wave)
        ───────────────────────────────────────────────────── */
     function startDrain() {
+      clearInterval(drainTimer);
       drainTimer = setInterval(() => {
-        if (!gameRunning || paused) return;
-        const drain = 1 + Math.max(0, (wave - 1) * 0.25);
+        if (!gameRunning || paused || resuming) return;
+        const drain = 0.5 + Math.max(0, (wave - 1) * 0.2);
         integrity = Math.max(0, integrity - drain);
         updateStats();
         if (integrity <= 0) endGame();
-      }, 800);
+      }, 100);
     }
 
     /* ─────────────────────────────────────────────────────
-       INPUT HANDLER (core mechanic)
+       INPUT HANDLER (core mechanic — wrong char = 8% + combo break)
        ───────────────────────────────────────────────────── */
     hiddenInput.addEventListener('input', (e) => {
-      if (!gameRunning || paused) {
+      if (!gameRunning || paused || resuming) {
         hiddenInput.value = "";
         return;
       }
@@ -591,12 +660,32 @@
       const prevTyped = typed;
       typed = val;
 
-      // Track accuracy for new characters
+      // Track accuracy and penalize wrong characters
       if (typed.length > prevTyped.length) {
         for (let i = prevTyped.length; i < typed.length; i++) {
           totalTyped++;
           if (i < currentWord.length && typed[i] === currentWord[i]) {
             totalCorrect++;
+          } else {
+            // Wrong character: break combo + 8% integrity loss
+            combo = 1;
+            integrity = Math.max(0, integrity - 8);
+            sfxMistake();
+
+            // Screen shake on wrong char
+            gameArea.classList.add('screen-shake');
+            setTimeout(() => gameArea.classList.remove('screen-shake'), 150);
+
+            // Flash terminal red
+            gameContainer.classList.remove('flash-success', 'flash-fail');
+            void gameContainer.offsetWidth;
+            gameContainer.classList.add('flash-fail');
+
+            if (integrity <= 0) {
+              updateStats();
+              endGame();
+              return;
+            }
           }
         }
         updateAccuracy();
@@ -622,27 +711,23 @@
         return;
       }
 
-      // Pause toggle
-      if (e.key === 'p' || e.key === 'P') {
-        if (gameRunning && !gameOverScreen.classList.contains('hidden') === false) {
-          togglePause();
-          return;
-        }
+      // ESC: toggle pause menu (not during resume countdown or game over)
+      if (e.key === 'Escape') {
+        if (resuming) return; // ignore during countdown
+        if (gameRunning && !gameOverScreen.classList.contains('hidden') === false) return;
         if (gameRunning) {
-          togglePause();
+          if (paused) {
+            resumeFromPause();
+          } else {
+            openPauseMenu();
+          }
           return;
         }
-      }
-
-      // Escape: end game
-      if (e.key === 'Escape' && gameRunning) {
-        endGame();
-        return;
       }
 
       // Enter: force submit or start game
       if (e.key === 'Enter') {
-        if (gameRunning && !paused && typed.length > 0) {
+        if (gameRunning && !paused && !resuming && typed.length > 0) {
           if (typed === currentWord) {
             handleSuccess();
           } else {
@@ -656,8 +741,8 @@
         }
       }
 
-      // Auto-focus input when game is running
-      if (gameRunning && !paused && document.activeElement !== hiddenInput) {
+      // Auto-focus input when game is running and not paused
+      if (gameRunning && !paused && !resuming && document.activeElement !== hiddenInput) {
         hiddenInput.focus();
       }
     });
@@ -678,18 +763,99 @@
     });
 
     /* ─────────────────────────────────────────────────────
-       PAUSE
+       PAUSE MENU (ESC to open/close)
        ───────────────────────────────────────────────────── */
-    function togglePause() {
-      if (!gameRunning) return;
-      paused = !paused;
-      if (paused) {
-        pauseOverlay.classList.remove('hidden');
-        hiddenInput.blur();
+    function openPauseMenu() {
+      if (!gameRunning || paused) return;
+      paused = true;
+      hiddenInput.blur();
+
+      // Blur the game area behind the menu
+      gameArea.classList.add('game-blurred');
+      titleBar.classList.add('game-blurred');
+
+      // Update wave goal text
+      const bestWave = Math.max(wave, Math.floor((Number(localStorage.getItem('sb_bestWave')) || 0)));
+      const goalWave = Math.max(bestWave + 1, 10);
+      pauseWaveGoal.textContent = `Reach wave ${goalWave} for a new high score!`;
+
+      pauseMenu.classList.remove('hidden');
+    }
+
+    function resumeFromPause() {
+      if (!paused || resuming) return;
+      pauseMenu.classList.add('hidden');
+
+      // Show 3-second countdown
+      resuming = true;
+      resumeCountdown.classList.remove('hidden');
+      let count = 3;
+      resumeCountdownText.textContent = count;
+      sfxCountdown();
+
+      const cdTimer = setInterval(() => {
+        count--;
+        if (count <= 0) {
+          clearInterval(cdTimer);
+          resumeCountdown.classList.add('hidden');
+          resumeCountdownText.textContent = '';
+          sfxCountdownGo();
+
+          // Remove blur, unpause
+          gameArea.classList.remove('game-blurred');
+          titleBar.classList.remove('game-blurred');
+          paused = false;
+          resuming = false;
+          hiddenInput.focus();
+        } else {
+          resumeCountdownText.textContent = count;
+          sfxCountdown();
+        }
+      }, 1000);
+    }
+
+    function restartFromPause() {
+      paused = false;
+      resuming = false;
+      pauseMenu.classList.add('hidden');
+      gameArea.classList.remove('game-blurred');
+      titleBar.classList.remove('game-blurred');
+      cleanupTimers();
+      gameRunning = false;
+      restartGame();
+      startGame();
+    }
+
+    function quitToMenu() {
+      paused = false;
+      resuming = false;
+      pauseMenu.classList.add('hidden');
+      gameArea.classList.remove('game-blurred');
+      titleBar.classList.remove('game-blurred');
+      cleanupTimers();
+      gameRunning = false;
+      restartGame();
+    }
+
+    function abortGame() {
+      if (gameRunning) {
+        if (paused) {
+          quitToMenu();
+        } else {
+          endGame();
+        }
       } else {
-        pauseOverlay.classList.add('hidden');
-        hiddenInput.focus();
+        location.reload();
       }
+    }
+
+    /* ─────────────────────────────────────────────────────
+       CLEANUP TIMERS
+       ───────────────────────────────────────────────────── */
+    function cleanupTimers() {
+      clearInterval(drainTimer);
+      clearInterval(comboDecayTimer);
+      clearTimeout(spawnDelayTimer);
     }
 
     /* ─────────────────────────────────────────────────────
@@ -697,7 +863,7 @@
        ───────────────────────────────────────────────────── */
     function showInstructions(callback) {
       // Show instructions for first-time players
-      const seen = localStorage.getItem('sb_instructionsSeen');
+      const seen = localStorage.getItem('sb_instructionsSeen_v12');
       if (seen) {
         callback();
         return;
@@ -713,7 +879,7 @@
         if (countdown <= 0) {
           clearInterval(cdTimer);
           instructionsOverlay.classList.add('hidden');
-          localStorage.setItem('sb_instructionsSeen', '1');
+          localStorage.setItem('sb_instructionsSeen_v12', '1');
           callback();
         } else {
           cdEl.textContent = `AUTO-STARTING IN ${countdown}...`;
@@ -724,7 +890,7 @@
       instructionsOverlay.addEventListener('click', () => {
         clearInterval(cdTimer);
         instructionsOverlay.classList.add('hidden');
-        localStorage.setItem('sb_instructionsSeen', '1');
+        localStorage.setItem('sb_instructionsSeen_v12', '1');
         callback();
       }, { once: true });
     }
@@ -735,6 +901,7 @@
         document.getElementById('start-btn').classList.add('hidden');
         gameRunning = true;
         paused = false;
+        resuming = false;
         score = 0;
         integrity = 100;
         wave = 1;
@@ -758,10 +925,13 @@
     function endGame() {
       gameRunning = false;
       paused = false;
-      clearInterval(drainTimer);
-      clearTimeout(comboDecayTimer);
+      resuming = false;
+      cleanupTimers();
       hiddenInput.blur();
-      pauseOverlay.classList.add('hidden');
+      pauseMenu.classList.add('hidden');
+      resumeCountdown.classList.add('hidden');
+      gameArea.classList.remove('game-blurred');
+      titleBar.classList.remove('game-blurred');
 
       sfxGameOver();
 
@@ -769,6 +939,12 @@
       if (score > highScore) {
         highScore = score;
         localStorage.setItem('sb_highScore', String(Math.floor(highScore)));
+      }
+
+      // Save best wave
+      const prevBestWave = Number(localStorage.getItem('sb_bestWave') || 0);
+      if (wave > prevBestWave) {
+        localStorage.setItem('sb_bestWave', String(wave));
       }
 
       // Save run history (last 5)
@@ -818,7 +994,7 @@
     window.onload = () => {
       highScore = Number(localStorage.getItem('sb_highScore') || 0);
       updateStats();
-      console.log("%cSIGNAL BREACH v1.1 ONLINE — TYPE TO SURVIVE", "color:#67e8f9;font-size:18px");
+      console.log("%cSIGNAL BREACH v1.2 ONLINE — TYPE TO SURVIVE", "color:#67e8f9;font-size:18px");
     };
   </script>
 </body>
