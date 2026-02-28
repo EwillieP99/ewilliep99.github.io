@@ -21,6 +21,7 @@ const COMMANDS: Record<string, string[]> = {
     "  about     — Learn about Ethan",
     "  skills    — View skill categories",
     "  projects  — Browse mission archive",
+    "  games     — Open arcade section",
     "  contact   — Get in touch",
     "  resume    — Download resume",
     "  clear     — Clear terminal",
@@ -57,6 +58,14 @@ const COMMANDS: Record<string, string[]> = {
     "[04] AI Workflow Stack     — 80% cognitive load reduced",
     "",
     "Scroll down to view full mission details.",
+  ],
+  games: [
+    "Booting arcade deck...",
+    "",
+    "[01] Signal Breach        — Live typing-defense game",
+    "[02] Classified Drop #2   — Coming soon",
+    "",
+    "Scroll down to launch active game modules.",
   ],
   contact: [
     "┌─ UPLINK CHANNELS ────────────────────────┐",
@@ -141,7 +150,7 @@ export function useTerminal(): TerminalReturn {
     }
 
     // Scroll navigation for certain commands
-    if (["projects", "contact", "skills"].includes(cmd)) {
+    if (["projects", "games", "contact", "skills"].includes(cmd)) {
       setTimeout(() => {
         const el = document.getElementById(cmd === "skills" ? "augmentations" : cmd);
         if (el) el.scrollIntoView({ behavior: "smooth" });

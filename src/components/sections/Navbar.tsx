@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { id: "timeline", label: "Chrono" },
   { id: "augmentations", label: "Skills" },
   { id: "projects", label: "Missions" },
+  { id: "games", label: "Arcade" },
   { id: "contact", label: "Uplink" },
 ];
 

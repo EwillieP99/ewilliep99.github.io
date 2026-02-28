@@ -24,7 +24,7 @@
   <div class="max-w-3xl w-full terminal rounded-xl overflow-hidden relative">
     <div class="bg-black border-b border-cyan-400 p-3 flex items-center justify-between text-xl">
       <div class="flex items-center gap-3"><span class="text-red-500 animate-pulse">●</span><span class="neon-cyan">SIGNAL BREACH v1.0</span></div>
-      <div class="flex gap-6 text-sm"><span>WAVE <span id="wave" class="text-white">1</span></span><span>SCORE <span id="score" class="text-white">00000</span></span><span>ACC <span id="accuracy" class="text-white">100</span>%</span></div>
+      <div class="flex gap-4 text-sm"><span>WAVE <span id="wave" class="text-white">1</span></span><span>SCORE <span id="score" class="text-white">00000</span></span><span>ACC <span id="accuracy" class="text-white">100</span>%</span><span>COMBO <span id="combo" class="text-white">x1.0</span></span><span>HIGH <span id="high-score" class="text-white">00000</span></span></div>
       <button onclick="location.reload()" class="text-xs px-3 py-1 border border-red-500 hover:bg-red-500/20">ABORT</button>
     </div>
     <div class="scanlines p-8 bg-black/90 min-h-[420px] flex flex-col">
@@ -35,6 +35,7 @@
         <input id="hidden-input" type="text" autocomplete="off" spellcheck="false" class="absolute inset-0 opacity-0 pointer-events-none">
       </div>
       <div id="feedback" class="text-center mt-4 text-xl h-8"></div>
+      <div class="text-center mt-2 text-cyan-400/60 text-sm">ENTER to lock in phrases • ESC to reset run</div>
     </div>
     <div class="bg-black p-4 flex justify-center gap-4 border-t border-cyan-400">
       <button onclick="startGame()" id="start-btn" class="neon-magenta px-10 py-4 text-2xl border-2 border-magenta-400 hover:border-white transition-all active:scale-95">INITIALIZE BREACH</button>
@@ -49,11 +50,13 @@
     const phrases = ["GENERATED $110K ARR IN B2B OUTBOUND PROSPECTING","ORGANIZED A 500+ ATTENDEE AI MIXER","MODERATED FACULTY-INDUSTRY AI PANEL FOR 100+ STUDENTS","LED 15 WORKSHOPS REACHING 600+ STUDENTS","67% TRIAL-TO-SIGNUP CONVERSION RATE","95% SOLUTION SELLING PROFICIENCY","90% PROMPT ENGINEERING","BUILT COMET ANALYTICS DASHBOARDS","MAINTAINED 30+ WEEK NOTION REVIEW STREAK","DIRECTED UF AI CLUB EVENTS","DEPLOYED THREE.JS NEON OPERATOR AVATAR","UPLOADED CLASSIFIED CHRONO LOG ENTRY","PURGED LEGACY FIREWALL PROTOCOLS","INJECTED NEURAL CREDIT BOOST","SYNCHRONIZED AUGMENTATION MATRIX","TRANSMITTED MISSION ARCHIVE PACKET"];
     let currentPhrase="",userTyped="",score=0,accuracy=100,wave=1,integrity=100,gameRunning=false,timer;
     let phrasesCleared=0,totalTyped=0,totalCorrect=0;
-    const phraseContainer=document.getElementById('phrase-container'),inputDisplay=document.getElementById('input-display'),hiddenInput=document.getElementById('hidden-input'),integrityEl=document.getElementById('integrity'),scoreEl=document.getElementById('score'),waveEl=document.getElementById('wave'),accuracyEl=document.getElementById('accuracy'),feedback=document.getElementById('feedback'),gameOverScreen=document.getElementById('game-over'),finalScoreEl=document.getElementById('final-score');
+    let combo=1,highScore=0;
+    const phraseContainer=document.getElementById('phrase-container'),inputDisplay=document.getElementById('input-display'),hiddenInput=document.getElementById('hidden-input'),integrityEl=document.getElementById('integrity'),scoreEl=document.getElementById('score'),waveEl=document.getElementById('wave'),accuracyEl=document.getElementById('accuracy'),comboEl=document.getElementById('combo'),highScoreEl=document.getElementById('high-score'),feedback=document.getElementById('feedback'),gameOverScreen=document.getElementById('game-over'),finalScoreEl=document.getElementById('final-score');
     function getRandomPhrase(){return phrases[Math.floor(Math.random()*phrases.length)];}
     function renderPhrase(){let html='';for(let i=0;i<currentPhrase.length;i++){const char=currentPhrase[i];if(i<userTyped.length){const cls=userTyped[i]===char?'text-green-400':'text-red-500 line-through';html+=`<span class="${cls}">${char}</span>`;}else{html+=`<span class="text-cyan-400/70">${char}</span>`;}}phraseContainer.innerHTML=html;}
-    function updateStats(){scoreEl.textContent=String(Math.floor(score)).padStart(5,'0');waveEl.textContent=wave;integrityEl.textContent=Math.max(0,Math.floor(integrity));accuracyEl.textContent=Math.max(0,Math.floor(accuracy));if(integrity<=30){integrityEl.classList.add('text-red-500','glitch');}else{integrityEl.classList.remove('text-red-500','glitch');}}
+    function updateStats(){scoreEl.textContent=String(Math.floor(score)).padStart(5,'0');waveEl.textContent=wave;integrityEl.textContent=Math.max(0,Math.floor(integrity));accuracyEl.textContent=Math.max(0,Math.floor(accuracy));comboEl.textContent=`x${combo.toFixed(1)}`;highScoreEl.textContent=String(Math.floor(highScore)).padStart(5,'0');if(integrity<=30){integrityEl.classList.add('text-red-500','glitch');}else{integrityEl.classList.remove('text-red-500','glitch');}}
     function updateAccuracy(){accuracy=totalTyped===0?100:(totalCorrect/totalTyped)*100;}
+    function renderInput(){inputDisplay.textContent=`${userTyped}${gameRunning?'_':''}`;}
     function nextPhrase(){currentPhrase=getRandomPhrase();userTyped="";renderPhrase();feedback.textContent="TYPE TO PURGE →";feedback.className="text-cyan-400 text-xl";}
     function checkInput(){
       if(!gameRunning)return;
@@ -70,12 +73,15 @@
 
       updateAccuracy();
       renderPhrase();
+      renderInput();
       updateStats();
 
       if(userTyped===currentPhrase){
         phrasesCleared++;
+        combo=Math.min(5,combo+0.3);
         const bonus=Math.max(50,300-(userTyped.length*5));
-        score+=bonus+(wave*20);
+        const gained=(bonus+(wave*20))*combo;
+        score+=gained;
 
         const nextWave=Math.floor(phrasesCleared/3)+1;
         const leveledUp=nextWave>wave;
@@ -84,23 +90,25 @@
         if(leveledUp){
           integrity=Math.min(100,integrity+8);
           feedback.textContent=`WAVE ${wave} ONLINE ⚡`;
-          feedback.className="text-magenta-400 text-2xl animate-pulse";
+          feedback.className="text-pink-400 text-2xl animate-pulse";
         }else{
-          feedback.textContent="SIGNAL PURGED ✓";
+          feedback.textContent=`SIGNAL PURGED ✓ +${Math.floor(gained)}`;
           feedback.className="text-green-400 text-2xl animate-pulse";
         }
 
         updateStats();
-        setTimeout(()=>{nextPhrase();hiddenInput.value="";},400);
+        setTimeout(()=>{nextPhrase();hiddenInput.value="";renderInput();},400);
+      }else if(userTyped.length>0&&userTyped[userTyped.length-1]!==currentPhrase[userTyped.length-1]){
+        combo=1;
       }
     }
     function damage(amount){integrity=Math.max(0,integrity-amount);updateStats();if(integrity<=0)endGame();}
-    function startGame(){document.getElementById('start-btn').classList.add('hidden');gameRunning=true;score=0;integrity=100;wave=1;accuracy=100;phrasesCleared=0;totalTyped=0;totalCorrect=0;updateStats();nextPhrase();hiddenInput.focus();timer=setInterval(()=>{if(integrity>0){const drain=1+Math.max(0,(wave-1)*0.25);damage(drain);}},800);}
-    function endGame(){gameRunning=false;clearInterval(timer);hiddenInput.blur();finalScoreEl.innerHTML=`FINAL TRANSMISSION<br><span class="text-6xl neon-cyan">${Math.floor(score)} PTS</span><br>WAVE ${wave} • ACC ${Math.floor(accuracy)}%`;gameOverScreen.classList.remove('hidden');const high=localStorage.getItem('neonHighScore')||0;if(score>high)localStorage.setItem('neonHighScore',score);}
-    function restartGame(){gameOverScreen.classList.add('hidden');document.getElementById('start-btn').classList.remove('hidden');hiddenInput.value="";}
+    function startGame(){document.getElementById('start-btn').classList.add('hidden');gameRunning=true;score=0;integrity=100;wave=1;accuracy=100;combo=1;phrasesCleared=0;totalTyped=0;totalCorrect=0;updateStats();nextPhrase();renderInput();hiddenInput.focus();timer=setInterval(()=>{if(integrity>0){const drain=1+Math.max(0,(wave-1)*0.25);damage(drain);}},800);}
+    function endGame(){gameRunning=false;clearInterval(timer);hiddenInput.blur();if(score>highScore){highScore=score;localStorage.setItem('neonHighScore',String(Math.floor(highScore)));}finalScoreEl.innerHTML=`FINAL TRANSMISSION<br><span class="text-6xl neon-cyan">${Math.floor(score)} PTS</span><br>WAVE ${wave} • ACC ${Math.floor(accuracy)}% • HIGH ${Math.floor(highScore)}`;updateStats();gameOverScreen.classList.remove('hidden');}
+    function restartGame(){gameOverScreen.classList.add('hidden');document.getElementById('start-btn').classList.remove('hidden');hiddenInput.value="";userTyped="";renderInput();}
     hiddenInput.addEventListener('input',checkInput);
-    document.addEventListener('keydown',e=>{if(gameRunning&&document.activeElement!==hiddenInput)hiddenInput.focus();});
-    window.onload=()=>{console.log("%cSIGNAL BREACH ONLINE — TYPE TO SURVIVE","color:#67e8f9;font-size:18px");};
+    document.addEventListener('keydown',e=>{if(gameRunning&&document.activeElement!==hiddenInput)hiddenInput.focus();if(e.key==='Escape'&&gameRunning){endGame();}if(e.key==='Enter'&&!gameRunning){startGame();}});
+    window.onload=()=>{highScore=Number(localStorage.getItem('neonHighScore')||0);updateStats();renderInput();console.log("%cSIGNAL BREACH ONLINE — TYPE TO SURVIVE","color:#67e8f9;font-size:18px");};
   </script>
 </body>
 </html>

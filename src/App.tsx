@@ -5,6 +5,7 @@ import { About } from "@/components/sections/About";
 import { Timeline } from "@/components/sections/Timeline";
 import { Skills } from "@/components/sections/Skills";
 import { Projects } from "@/components/sections/Projects";
+import { Games } from "@/components/sections/Games";
 import { Contact } from "@/components/sections/Contact";
 import { Footer } from "@/components/sections/Footer";
 import { Terminal } from "@/components/ui/Terminal";
@@ -94,6 +95,7 @@ export default function App() {
         <Timeline />
         <Skills />
         <Projects />
+        <Games />
         <Contact />
       </main>
 

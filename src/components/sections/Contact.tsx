@@ -83,7 +83,7 @@ export function Contact() {
 
       <AnimatedSection>
         <SectionHeader
-          codename="// 05"
+          codename="// 06"
           label="Uplink Terminal"
           sub="Send a signal — I reply fast"
         />
