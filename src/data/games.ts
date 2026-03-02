@@ -27,13 +27,27 @@ export const games: Game[] = [
     highlight: "Live now · wave + accuracy + combo systems",
   },
   {
-    id: "next-drop",
-    title: "Classified Drop #2",
+    id: "aether-descent",
+    title: "Aether Descent",
     description:
-      "Reserved slot for the next mini-game module in the arcade. Keep this as a scaffold so you can plug in future projects fast.",
-    status: "coming-soon",
-    tech: ["TBD"],
-    links: [],
-    highlight: "Coming soon",
+      "Physics-based precision lander with 12 planets, upgradeable probe, hazard systems, and endless mode. Land gently, collect shards, survive everything.",
+    status: "live",
+    tech: ["Phaser 3", "Matter.js", "Web Audio"],
+    links: [
+      { label: "Play", href: "/games/aether-descent/" },
+    ],
+    highlight: "Live now · 12 planets · upgrades · endless mode",
+  },
+  {
+    id: "verdant-siege",
+    title: "Verdant Siege",
+    description:
+      "Wave tower defense with 5 tower types, 12 maps, 6 enemy classes, upgrade tree, and boss battles. Defend the Ancient Tree from the Blight.",
+    status: "live",
+    tech: ["Phaser 3", "Arcade Physics", "Procedural Gen"],
+    links: [
+      { label: "Play", href: "/games/verdant-siege/" },
+    ],
+    highlight: "Live now · 12 maps · 5 towers · boss waves · upgrades",
   },
 ];

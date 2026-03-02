@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETHER DESCENT — Precision Lander</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0f1e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: monospace;
+      color: #94a3b8;
+      overflow: hidden;
+    }
+    #game-container {
+      border: 2px solid #00f5ff;
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.15), 0 0 60px rgba(168, 85, 247, 0.08);
+      border-radius: 4px;
+    }
+    canvas { display: block; }
+    .controls {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #475569;
+      text-align: center;
+      line-height: 1.6;
+    }
+    .controls span { color: #00f5ff; }
+    a.back-link {
+      position: fixed;
+      top: 12px;
+      left: 16px;
+      color: #00f5ff;
+      text-decoration: none;
+      font-size: 14px;
+      font-family: monospace;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    a.back-link:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <a class="back-link" href="/games">← Arcade</a>
+  <div id="game-container"></div>
+  <div class="controls">
+    <span>↑/W</span> Thrust · <span>←→/AD</span> Strafe · <span>↓/S</span> Descend · <span>ESC</span> Pause
+  </div>
+
+  <!-- Phaser 3 -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+  <!-- Game modules (order matters) -->
+  <script src="js/config.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/assets.js"></script>
+  <script src="js/planets.js"></script>
+  <script src="js/upgrades.js"></script>
+  <script src="js/scenes/BootScene.js"></script>
+  <script src="js/scenes/PreloadScene.js"></script>
+  <script src="js/scenes/MainMenuScene.js"></script>
+  <script src="js/scenes/PlanetSelectScene.js"></script>
+  <script src="js/scenes/GameScene.js"></script>
+  <script src="js/scenes/UpgradeShopScene.js"></script>
+  <script src="js/scenes/GameOverScene.js"></script>
+  <script src="js/scenes/LeaderboardScene.js"></script>
+
+  <!-- Boot -->
+  <script>
+    const config = {
+      type: Phaser.AUTO,
+      width: AD.GAME_WIDTH,
+      height: AD.GAME_HEIGHT,
+      parent: 'game-container',
+      backgroundColor: '#0a0f1e',
+      physics: {
+        default: 'matter',
+        matter: {
+          gravity: { x: 0, y: 0 },
+          debug: false,
+        },
+      },
+      scene: [
+        BootScene,
+        PreloadScene,
+        MainMenuScene,
+        PlanetSelectScene,
+        GameScene,
+        UpgradeShopScene,
+        GameOverScene,
+        LeaderboardScene,
+      ],
+    };
+    new Phaser.Game(config);
+  </script>
+</body>
+</html>

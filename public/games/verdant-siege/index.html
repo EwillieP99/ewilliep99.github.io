@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Verdant Siege — Wave Tower Defense</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #060e08;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #a3c4a8;
+      overflow: hidden;
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    #game-container {
+      border: 2px solid #1a4a22;
+      box-shadow:
+        0 0 20px rgba(45,122,58,0.15),
+        0 0 60px rgba(45,122,58,0.06),
+        inset 0 0 30px rgba(0,0,0,0.3);
+      border-radius: 4px;
+      position: relative;
+    }
+    canvas { display: block; image-rendering: auto; }
+    .controls {
+      margin-top: 12px;
+      font-size: 11px;
+      color: #2a4a2e;
+      text-align: center;
+      line-height: 1.8;
+    }
+    .controls kbd {
+      background: #0f1f14;
+      border: 1px solid #1a3a22;
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #3a7a44;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container"></div>
+  <div class="controls">
+    <kbd>1-5</kbd> Tower &nbsp;
+    <kbd>Drag</kbd> Place &nbsp;
+    <kbd>Click</kbd> Select &nbsp;
+    <kbd>P</kbd> Pause &nbsp;
+    <kbd>Space</kbd> Speed &nbsp;
+    <kbd>ESC</kbd> Deselect
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/enemies.js"></script>
+  <script src="js/towers.js"></script>
+  <script src="js/upgrades.js"></script>
+  <script src="js/boot.js"></script>
+  <script src="js/preload.js"></script>
+  <script src="js/mainmenu.js"></script>
+  <script src="js/mapselect.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/gameover.js"></script>
+  <script>
+    const config = {
+      type: Phaser.AUTO,
+      width: 1280,
+      height: 720,
+      parent: 'game-container',
+      backgroundColor: '#060e08',
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+      },
+      physics: {
+        default: 'arcade',
+        arcade: { debug: false }
+      },
+      scene: [
+        BootScene,
+        PreloadScene,
+        MainMenuScene,
+        MapSelectScene,
+        GameScene,
+        UpgradeTreeScene,
+        VictoryScene,
+        GameOverScene,
+        LeaderboardScene,
+      ],
+      input: {
+        activePointers: 3,
+      },
+      render: {
+        pixelArt: false,
+        antialias: true,
+        roundPixels: false,
+      },
+      fps: {
+        target: 60,
+        forceSetTimeOut: false,
+      },
+    };
+
+    const game = new Phaser.Game(config);
+  </script>
+</body>
+</html>

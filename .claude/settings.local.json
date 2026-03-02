@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(npm run:*)",
+      "Bash(wc:*)",
+      "Bash(npx vite:*)",
+      "Bash(curl:*)",
+      "Bash(do node:*)"
+    ]
+  },
+  "spinnerTipsEnabled": false
+}
