@@ -3,11 +3,25 @@
 /* ── Projectile ── */
 class Projectile extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, target, damage, speed, type, aoe, color) {
-    const texKey = type === 'magic' ? 'proj_magic' : aoe > 0 ? 'proj_bloom' : 'proj_physical';
+    // POLISH ADD - Use Kenney ammo sprites if available
+    let texKey;
+    const kenney = scene.registry.get('kenneyLoaded');
+    if (kenney) {
+      if (aoe > 0) texKey = 'k_ammo_cannonball';
+      else if (type === 'magic') texKey = 'k_ammo_bullet';
+      else texKey = 'k_ammo_arrow';
+    } else {
+      texKey = type === 'magic' ? 'proj_magic' : aoe > 0 ? 'proj_bloom' : 'proj_physical';
+    }
     super(scene, x, y, scene.textures.exists(texKey) ? texKey : 'circle');
     scene.add.existing(this);
     this.setDepth(7);
-    if (!scene.textures.exists(texKey)) this.setTint(color || 0xccff44);
+    // POLISH ADD - Scale Kenney ammo to fit
+    if (kenney && texKey.startsWith('k_')) {
+      this.setScale(0.25);
+    } else if (!scene.textures.exists(texKey)) {
+      this.setTint(color || 0xccff44);
+    }
     this.target = target;
     this.damage = damage;
     this.speed = speed || 6;
@@ -59,6 +73,10 @@ class Projectile extends Phaser.GameObjects.Sprite {
         duration: 300,
         onComplete: () => ring.destroy(),
       });
+      // POLISH ADD - Shockwave on AoE impact
+      if (this.scene._spawnShockwave) {
+        this.scene._spawnShockwave(this.x, this.y, 0xff88cc, 1.5, 300);
+      }
       SFX.explosion();
     } else {
       this.target.takeDamage(this.damage, this.type);
@@ -84,7 +102,10 @@ class Projectile extends Phaser.GameObjects.Sprite {
 /* ── Tower base ── */
 class Tower extends Phaser.GameObjects.Sprite {
   constructor(scene, tileX, tileY, def) {
-    const texKey = 'tower_' + def.id;
+    // POLISH ADD - Use Kenney tower sprites if available
+    const kenney = scene.registry.get('kenneyLoaded');
+    const kKey = 'k_tower_' + def.id;
+    const texKey = kenney && scene.textures.exists(kKey) ? kKey : 'tower_' + def.id;
     super(scene, tileX, tileY, scene.textures.exists(texKey) ? texKey : 'circle');
     scene.add.existing(this);
 
@@ -97,15 +118,21 @@ class Tower extends Phaser.GameObjects.Sprite {
     this.fireTimer = 0;
     this.type = def.type;
     this.kills = 0;
+    this._useKenney = kenney && scene.textures.exists(kKey); // POLISH ADD
 
     this.range = def.range;
     this.damage = def.damage;
     this.rate = def.rate;
 
-    if (!scene.textures.exists(texKey)) {
+    // POLISH ADD - Scale and tint for Kenney vs procedural
+    if (this._useKenney) {
+      this.setScale(0.55);
+    } else if (!scene.textures.exists('tower_' + def.id)) {
       this.setTint(def.color);
+      this.setScale(1.0);
+    } else {
+      this.setScale(1.0);
     }
-    this.setScale(1.0);
     this.setDepth(4);
     this.setInteractive();
 
@@ -113,9 +140,13 @@ class Tower extends Phaser.GameObjects.Sprite {
     this.rangeCircle = scene.add.graphics().setDepth(3).setVisible(false);
     this._drawRange();
 
-    /* glow under tower */
-    this.glowSprite = scene.add.image(tileX, tileY, 'glow')
-      .setTint(def.color).setScale(1.8).setAlpha(0.15).setDepth(3);
+    // POLISH ADD - Enhanced glow under tower using bloomGlow texture
+    this.glowSprite = scene.add.image(tileX, tileY, 'bloomGlow')
+      .setTint(def.color).setScale(2.2).setAlpha(0.18).setDepth(3)
+      .setBlendMode(Phaser.BlendModes.ADD);
+
+    // POLISH ADD - Upgrade frame overlay (hidden until level 2+)
+    this.upgradeFrame = null;
 
     this.on('pointerdown', (ptr) => {
       if (!scene.dragGhost) {
@@ -134,11 +165,12 @@ class Tower extends Phaser.GameObjects.Sprite {
     });
 
     /* place pop animation */
-    this.setScale(0.1);
+    const targetScale = this._useKenney ? 0.55 : 1;
+    this.setScale(0.05);
     scene.tweens.add({
       targets: this,
-      scaleX: 1,
-      scaleY: 1,
+      scaleX: targetScale,
+      scaleY: targetScale,
       duration: 300,
       ease: 'Back.easeOut',
     });
@@ -169,15 +201,16 @@ class Tower extends Phaser.GameObjects.Sprite {
     this._drawRange();
     SFX.upgrade();
 
-    /* upgrade pop animation */
+    // POLISH ADD - Enhanced upgrade pop animation (bigger bounce)
+    const targetScale = this._useKenney ? 0.55 : 1;
     this.scene.tweens.add({
       targets: this,
-      scaleX: 1.4,
-      scaleY: 1.4,
+      scaleX: targetScale * 1.5,
+      scaleY: targetScale * 1.5,
       duration: 150,
       yoyo: true,
       ease: 'Back.easeOut',
-      onComplete: () => this.setScale(1),
+      onComplete: () => this.setScale(targetScale),
     });
 
     /* upgrade sparkle */
@@ -185,16 +218,32 @@ class Tower extends Phaser.GameObjects.Sprite {
       this.scene.upgradeEmitter.explode(12, this.x, this.y);
     }
 
-    /* level glow pulse */
-    this.glowSprite.setScale(2.5);
-    this.glowSprite.setAlpha(0.4);
+    // POLISH ADD - Level glow pulse (enhanced with bloomGlow)
+    this.glowSprite.setScale(4);
+    this.glowSprite.setAlpha(0.5);
     this.scene.tweens.add({
       targets: this.glowSprite,
-      scale: 1.8,
-      alpha: 0.15,
-      duration: 500,
+      scale: 2.2,
+      alpha: 0.18,
+      duration: 600,
       ease: 'Power2',
     });
+
+    // POLISH ADD - Add/update upgrade frame overlay
+    if (this.upgradeFrame) this.upgradeFrame.destroy();
+    const frameKey = this.level >= 3 ? 'upgrade_frame_3' : 'upgrade_frame_2';
+    if (this.scene.textures.exists(frameKey)) {
+      this.upgradeFrame = this.scene.add.image(this.x, this.y, frameKey)
+        .setDepth(5).setAlpha(0.7).setScale(this._useKenney ? 0.6 : 1);
+      // POLISH ADD - Frame pulse in
+      this.upgradeFrame.setScale(0.1);
+      this.scene.tweens.add({
+        targets: this.upgradeFrame,
+        scale: this._useKenney ? 0.6 : 1,
+        duration: 300,
+        ease: 'Back.easeOut',
+      });
+    }
 
     floatingText(this.scene, this.x, this.y - 20, 'Lv ' + this.level, '#44ff88', 14);
     return true;
@@ -216,8 +265,15 @@ class Tower extends Phaser.GameObjects.Sprite {
       onComplete: () => poof.destroy(),
     });
 
+    // POLISH ADD - Debris on sell
+    if (this.scene.debrisExplode) {
+      this.scene.debrisExplode(this.x, this.y, this.def.color, 5);
+    }
+
     this.rangeCircle.destroy();
     this.glowSprite.destroy();
+    // POLISH ADD - Clean up upgrade frame
+    if (this.upgradeFrame) this.upgradeFrame.destroy();
     this.scene.removeTower(this);
     this.destroy();
   }
@@ -268,6 +324,17 @@ class Tower extends Phaser.GameObjects.Sprite {
       scale: 0.1,
       duration: 100,
       onComplete: () => flash.destroy(),
+    });
+
+    // POLISH ADD - Fire recoil squash on tower
+    const targetScale = this._useKenney ? 0.55 : 1;
+    this.scene.tweens.add({
+      targets: this,
+      scaleX: targetScale * 0.9,
+      scaleY: targetScale * 1.1,
+      duration: 50,
+      yoyo: true,
+      ease: 'Sine.easeOut',
     });
   }
 
@@ -341,7 +408,7 @@ class HeartLily extends Tower {
       if (this.scene.lives < maxLives) {
         this.scene.lives = Math.min(maxLives, this.scene.lives + 1);
         this.scene.updateHUD();
-        floatingText(this.scene, this.scene.treeSprite.x, this.scene.treeSprite.y - 20, '+1 ♥', '#ff6666', 12);
+        floatingText(this.scene, this.scene.treeSprite.x, this.scene.treeSprite.y - 20, '+1 \u2665', '#ff6666', 12);
 
         /* heal pulse on tree */
         if (this.scene.healEmitter) {
@@ -366,6 +433,12 @@ class HeartLily extends Tower {
         duration: 600,
         onComplete: () => pulse.destroy(),
       });
+
+      // POLISH ADD - Mana spark particles on heal
+      if (this.scene.manaSeedEmitter) {
+        this.scene.manaSeedEmitter.setParticleTint(0xff6b6b);
+        this.scene.manaSeedEmitter.explode(2, this.x, this.y);
+      }
     }
   }
 

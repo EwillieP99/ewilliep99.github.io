@@ -3,6 +3,35 @@
 class PreloadScene extends Phaser.Scene {
   constructor() { super('PreloadScene'); }
 
+  // POLISH ADD - Load Kenney tower defense kit assets
+  preload() {
+    const K = 'assets/kenney/';
+
+    /* Kenney tower sprites (replace procedural with HD isometric) */
+    this.load.image('k_tower_thornspitter', K + 'tower-thornspitter.png');
+    this.load.image('k_tower_vinetrapper',  K + 'tower-vinetrapper.png');
+    this.load.image('k_tower_bloombomber',  K + 'tower-bloombomber.png');
+    this.load.image('k_tower_moonflower',   K + 'tower-moonflower.png');
+    this.load.image('k_tower_heartlily',    K + 'tower-heartlily.png');
+
+    /* Kenney tree, spawn, selection */
+    this.load.image('k_tree',       K + 'heart-tree.png');
+    this.load.image('k_spawn',      K + 'spawn-portal.png');
+    this.load.image('k_selection',  K + 'selection.png');
+
+    /* Kenney projectiles */
+    this.load.image('k_ammo_arrow',      K + 'ammo-arrow.png');
+    this.load.image('k_ammo_boulder',    K + 'ammo-boulder.png');
+    this.load.image('k_ammo_cannonball', K + 'ammo-cannonball.png');
+    this.load.image('k_ammo_bullet',     K + 'ammo-bullet.png');
+
+    /* Kenney decorations */
+    this.load.image('k_deco_crystal',       K + 'deco-crystal.png');
+    this.load.image('k_deco_crystal_large', K + 'deco-crystal-large.png');
+    this.load.image('k_deco_rocks',         K + 'deco-rocks.png');
+    this.load.image('k_deco_tree',          K + 'deco-tree.png');
+  }
+
   create() {
     this.cameras.main.setBackgroundColor(0x060e08);
 
@@ -16,6 +45,40 @@ class PreloadScene extends Phaser.Scene {
 
     /* tree icon */
     this.add.image(640, 280, 'tree').setScale(1.5).setAlpha(0.3);
+
+    // POLISH ADD - Verify all procedural polish textures exist
+    const polishTextures = [
+      'pollen', 'manaSpark', 'confetti', 'debris',
+      'bloomGlow', 'shockwave', 'manaSeed', 'starBurst',
+      'upgrade_frame_2', 'upgrade_frame_3'
+    ];
+    let missingCount = 0;
+    for (const tex of polishTextures) {
+      if (!this.textures.exists(tex)) {
+        console.warn('[VS Polish] Missing procedural texture:', tex);
+        missingCount++;
+      }
+    }
+    if (missingCount === 0) {
+      console.log('[VS Polish] All', polishTextures.length, 'procedural polish textures OK');
+    }
+
+    // POLISH ADD - Verify Kenney assets loaded
+    const kenneyKeys = [
+      'k_tower_thornspitter', 'k_tower_vinetrapper', 'k_tower_bloombomber',
+      'k_tower_moonflower', 'k_tower_heartlily', 'k_tree', 'k_spawn',
+      'k_selection', 'k_ammo_arrow', 'k_ammo_boulder', 'k_ammo_cannonball',
+      'k_ammo_bullet', 'k_deco_crystal', 'k_deco_rocks', 'k_deco_tree'
+    ];
+    let kenneyOk = 0;
+    for (const key of kenneyKeys) {
+      if (this.textures.exists(key)) kenneyOk++;
+      else console.warn('[VS Kenney] Missing asset:', key);
+    }
+    console.log('[VS Kenney]', kenneyOk + '/' + kenneyKeys.length, 'assets loaded');
+
+    // POLISH ADD - Store Kenney availability flag for other scenes
+    this.registry.set('kenneyLoaded', kenneyOk >= 5);
 
     /* Generate maps */
     this.registry.set('maps', generateMaps());

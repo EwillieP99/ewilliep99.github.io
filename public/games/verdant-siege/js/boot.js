@@ -43,6 +43,96 @@ class BootScene extends Phaser.Scene {
     g.fillCircle(16, 16, 5);
     g.generateTexture('glow', 32, 32);
 
+    // POLISH ADD - Pollen particle (soft drifting organic)
+    g.clear();
+    g.fillStyle(0xffffff, 0.3);
+    g.fillCircle(8, 8, 8);
+    g.fillStyle(0xffffff, 0.5);
+    g.fillCircle(8, 8, 5);
+    g.fillStyle(0xffffff, 0.9);
+    g.fillCircle(7, 7, 2);
+    g.generateTexture('pollen', 16, 16);
+
+    // POLISH ADD - Mana spark particle (bright magical)
+    g.clear();
+    g.fillStyle(0xffffff, 0.2);
+    g.fillCircle(8, 8, 8);
+    g.fillStyle(0xffffff, 0.6);
+    g.fillCircle(8, 8, 4);
+    g.fillStyle(0xffffff, 1.0);
+    g.fillCircle(8, 8, 2);
+    // little cross flare
+    g.fillStyle(0xffffff, 0.4);
+    g.fillRect(6, 0, 4, 16);
+    g.fillRect(0, 6, 16, 4);
+    g.generateTexture('manaSpark', 16, 16);
+
+    // POLISH ADD - Confetti particle (small square + bright)
+    g.clear();
+    g.fillStyle(0xffffff, 1);
+    g.fillRect(1, 1, 6, 6);
+    g.fillStyle(0xffffff, 0.5);
+    g.fillRect(2, 2, 4, 4);
+    g.generateTexture('confetti', 8, 8);
+
+    // POLISH ADD - Debris particle (chunky fragment, 4 frame strip)
+    g.clear();
+    // frame 0: small triangle chunk
+    g.fillStyle(0xffffff, 1);
+    g.fillTriangle(2, 10, 10, 10, 6, 2);
+    // frame 1: rotated chunk
+    g.fillTriangle(14, 10, 22, 10, 18, 2);
+    // frame 2: diamond chunk
+    g.fillTriangle(28, 2, 24, 6, 28, 10);
+    g.fillTriangle(28, 2, 32, 6, 28, 10);
+    // frame 3: irregular
+    g.fillTriangle(36, 8, 42, 4, 44, 10);
+    g.generateTexture('debris', 48, 12);
+
+    // POLISH ADD - Large bloom glow (for tree/tower bloom aura)
+    g.clear();
+    g.fillStyle(0xffffff, 0.05);
+    g.fillCircle(32, 32, 32);
+    g.fillStyle(0xffffff, 0.1);
+    g.fillCircle(32, 32, 22);
+    g.fillStyle(0xffffff, 0.2);
+    g.fillCircle(32, 32, 12);
+    g.fillStyle(0xffffff, 0.4);
+    g.fillCircle(32, 32, 5);
+    g.generateTexture('bloomGlow', 64, 64);
+
+    // POLISH ADD - Shockwave ring (for boss slam / wave start)
+    g.clear();
+    g.lineStyle(3, 0xffffff, 0.8);
+    g.strokeCircle(32, 32, 28);
+    g.lineStyle(1, 0xffffff, 0.3);
+    g.strokeCircle(32, 32, 22);
+    g.generateTexture('shockwave', 64, 64);
+
+    // POLISH ADD - Mana seed (collectible drop from enemies)
+    g.clear();
+    g.fillStyle(0x2277cc, 1);
+    g.fillTriangle(6, 2, 2, 10, 10, 10);
+    g.fillStyle(0x44aaff, 0.8);
+    g.fillTriangle(6, 3, 3, 9, 9, 9);
+    g.fillStyle(0x88ddff, 0.5);
+    g.fillCircle(6, 6, 2);
+    g.generateTexture('manaSeed', 12, 12);
+
+    // POLISH ADD - Upgrade star burst (radial lines)
+    g.clear();
+    g.lineStyle(2, 0xffffff, 0.9);
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI * 2) / 8;
+      g.lineBetween(
+        16 + Math.cos(a) * 4, 16 + Math.sin(a) * 4,
+        16 + Math.cos(a) * 14, 16 + Math.sin(a) * 14
+      );
+    }
+    g.fillStyle(0xffffff, 0.3);
+    g.fillCircle(16, 16, 6);
+    g.generateTexture('starBurst', 32, 32);
+
     /* ── Tile (placement grid) ── */
     g.clear();
     g.fillStyle(0x0f2214, 1);
@@ -170,6 +260,10 @@ class BootScene extends Phaser.Scene {
       g.fillCircle(Math.random() * VS.TILE, Math.random() * VS.TILE, 2 + Math.random() * 3);
     }
     g.generateTexture('path_tile', VS.TILE, VS.TILE);
+
+    // POLISH ADD - Tower upgrade frame overlays (level 2 & 3 borders)
+    this._genUpgradeFrame(g, 'upgrade_frame_2', 0x44cc55, 0.5);
+    this._genUpgradeFrame(g, 'upgrade_frame_3', 0xffd700, 0.7);
 
     g.destroy();
 
@@ -338,5 +432,24 @@ class BootScene extends Phaser.Scene {
     g.fillStyle(0xffffff, 0.5);
     g.fillCircle(5, 5, 2);
     g.generateTexture(key, 12, 12);
+  }
+
+  // POLISH ADD - Generate tower upgrade level frame overlay
+  _genUpgradeFrame(g, key, color, alpha) {
+    const s = 44;
+    g.clear();
+    g.lineStyle(2, color, alpha);
+    g.strokeRect(2, 2, s - 4, s - 4);
+    // corner accents
+    g.fillStyle(color, alpha * 0.8);
+    g.fillRect(2, 2, 6, 2);
+    g.fillRect(2, 2, 2, 6);
+    g.fillRect(s - 8, 2, 6, 2);
+    g.fillRect(s - 4, 2, 2, 6);
+    g.fillRect(2, s - 4, 6, 2);
+    g.fillRect(2, s - 8, 2, 6);
+    g.fillRect(s - 8, s - 4, 6, 2);
+    g.fillRect(s - 4, s - 8, 2, 6);
+    g.generateTexture(key, s, s);
   }
 }

@@ -71,7 +71,8 @@
   <script src="js/gameover.js"></script>
   <script>
     const config = {
-      type: Phaser.AUTO,
+      // POLISH ADD - Force WebGL for PostFX pipeline (bloom, vignette, barrel)
+      type: Phaser.WEBGL,
       width: 1280,
       height: 720,
       parent: 'game-container',
@@ -102,11 +103,15 @@
         pixelArt: false,
         antialias: true,
         roundPixels: false,
+        // POLISH ADD - Enable pipeline for PostFX shaders
+        transparent: false,
       },
       fps: {
         target: 60,
         forceSetTimeOut: false,
       },
+      // POLISH ADD - Enable PostFX pipeline support
+      pipeline: true,
     };
 
     const game = new Phaser.Game(config);

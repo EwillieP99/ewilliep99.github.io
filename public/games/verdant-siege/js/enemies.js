@@ -73,11 +73,27 @@ class Enemy extends Phaser.GameObjects.Sprite {
 
     let dmg = amount;
     if (type === 'physical') dmg = Math.max(1, amount - this.armor);
+
+    // POLISH ADD - Critical hit bonus damage (from upgrades)
+    const critChance = this.scene.bonuses ? this.scene.bonuses.critChance : 0;
+    let isCrit = false;
+    if (critChance > 0 && Math.random() < critChance) {
+      dmg = Math.round(dmg * 1.5);
+      isCrit = true;
+    }
+
     this.hp -= dmg;
 
-    /* floating damage number */
-    floatingText(this.scene, this.x + (Math.random() - 0.5) * 10, this.y - 10,
-      '-' + dmg, type === 'magic' ? '#bb88ff' : '#ffcc44', 11);
+    // POLISH ADD - Enhanced floating damage with crit indicator
+    if (isCrit) {
+      floatingText(this.scene, this.x + (Math.random() - 0.5) * 10, this.y - 14,
+        'CRIT -' + dmg, '#ff4444', 14);
+      // POLISH ADD - Screen micro-shake on crit
+      this.scene.cameras.main.shake(60, 0.002);
+    } else {
+      floatingText(this.scene, this.x + (Math.random() - 0.5) * 10, this.y - 10,
+        '-' + dmg, type === 'magic' ? '#bb88ff' : '#ffcc44', 11);
+    }
 
     if (this.hp <= 0) {
       this.hp = 0;
@@ -97,17 +113,21 @@ class Enemy extends Phaser.GameObjects.Sprite {
       }
     });
 
-    /* slight knockback squash */
+    // POLISH ADD - Enhanced squash on damage (more dramatic)
     if (!this._squashing) {
       this._squashing = true;
+      const baseScale = this.def.scale || 1;
       this.scene.tweens.add({
         targets: this,
-        scaleX: (this.def.scale || 1) * 0.85,
-        scaleY: (this.def.scale || 1) * 1.15,
+        scaleX: baseScale * 0.8,
+        scaleY: baseScale * 1.2,
         duration: 60,
         yoyo: true,
         ease: 'Sine.easeInOut',
-        onComplete: () => { this._squashing = false; }
+        onComplete: () => {
+          this._squashing = false;
+          if (this.alive) this.setScale(baseScale);
+        }
       });
     }
   }
@@ -127,30 +147,55 @@ class Enemy extends Phaser.GameObjects.Sprite {
     this.scene.onEnemyKilled(this);
     SFX.enemyDeath();
 
+    // POLISH ADD - Enhanced death burst with debris + mana seeds (called from game.js onEnemyKilled)
+
     /* death burst particles */
     if (this.scene.deathEmitter) {
-      const count = this.boss ? 20 : 8;
+      const count = this.boss ? 25 : 10; // POLISH ADD - More particles
       this.scene.deathEmitter.setParticleTint(this.def.color);
       this.scene.deathEmitter.explode(count, this.x, this.y);
     }
 
     /* mana sparkle particles */
     if (this.scene.manaEmitter) {
-      this.scene.manaEmitter.explode(3, this.x, this.y);
+      this.scene.manaEmitter.explode(this.boss ? 8 : 3, this.x, this.y); // POLISH ADD - More for boss
     }
 
     /* mana pickup text */
     floatingText(this.scene, this.x, this.y - 5, '+' + this.reward + 'm', '#44aaff', 12);
 
-    /* death pop animation */
-    const deathSprite = this.scene.add.circle(this.x, this.y, 8 * (this.def.scale || 1), this.def.color, 0.6).setDepth(10);
+    // POLISH ADD - Enhanced death pop animation (squash then explode)
+    const baseScale = this.def.scale || 1;
+    const deathSprite = this.scene.add.circle(this.x, this.y, 10 * baseScale, this.def.color, 0.7).setDepth(10);
     this.scene.tweens.add({
       targets: deathSprite,
+      scaleX: 0.3,
+      scaleY: 2,
+      duration: 80,
+      ease: 'Sine.easeIn',
+      onComplete: () => {
+        this.scene.tweens.add({
+          targets: deathSprite,
+          scale: 3,
+          alpha: 0,
+          duration: 250,
+          ease: 'Power2',
+          onComplete: () => deathSprite.destroy(),
+        });
+      },
+    });
+
+    // POLISH ADD - Bloom glow flash on death position
+    const deathGlow = this.scene.add.image(this.x, this.y, 'bloomGlow')
+      .setTint(this.def.color).setScale(1).setAlpha(0.4).setDepth(9)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.scene.tweens.add({
+      targets: deathGlow,
       scale: 2.5,
       alpha: 0,
-      duration: 300,
+      duration: 350,
       ease: 'Power2',
-      onComplete: () => deathSprite.destroy(),
+      onComplete: () => deathGlow.destroy(),
     });
 
     this.hpBar.destroy();
@@ -168,6 +213,14 @@ class Enemy extends Phaser.GameObjects.Sprite {
       this.scene.treeSprite.setTintFill(0xff4444);
       this.scene.time.delayedCall(150, () => {
         if (this.scene.treeSprite) this.scene.treeSprite.clearTint();
+      });
+    }
+
+    // POLISH ADD - Tree damage glow flash
+    if (this.scene.treeGlow) {
+      this.scene.treeGlow.setTint(0xff4444);
+      this.scene.time.delayedCall(300, () => {
+        if (this.scene.treeGlow) this.scene.treeGlow.setTint(0x44ff44);
       });
     }
 
@@ -261,6 +314,10 @@ class Thornbeast extends Enemy {
   die() {
     if (!this.hasSplit) {
       this.hasSplit = true;
+      // POLISH ADD - Shockwave on thornbeast split
+      if (this.scene._spawnShockwave) {
+        this.scene._spawnShockwave(this.x, this.y, 0x556b2f, 1.5, 300);
+      }
       for (let i = 0; i < 2; i++) {
         const remainPath = this.path.slice(this.pathIndex);
         if (remainPath.length < 2) continue;
@@ -309,11 +366,32 @@ class BlightLord extends Enemy {
     SFX.bossDeath();
     /* screen shake on boss death */
     if (this.scene.cameras && this.scene.cameras.main) {
-      this.scene.cameras.main.shake(400, 0.015);
+      // POLISH ADD - Enhanced boss death shake
+      this.scene.cameras.main.shake(500, 0.02);
     }
     /* brief slow-mo effect */
     this.scene._triggerSlowMo(600);
     floatingText(this.scene, this.x, this.y - 30, 'BOSS SLAIN!', '#ff4444', 20);
+
+    // POLISH ADD - Massive shockwave on boss death
+    if (this.scene._spawnShockwave) {
+      this.scene._spawnShockwave(this.x, this.y, 0xff2222, 5, 800);
+      this.scene.time.delayedCall(150, () => {
+        this.scene._spawnShockwave(this.x, this.y, 0xffaa00, 3.5, 600);
+      });
+    }
+
+    // POLISH ADD - Boss death confetti
+    if (this.scene.confettiExplode) {
+      this.scene.confettiExplode(this.x, this.y, 50);
+    }
+
+    // POLISH ADD - Camera zoom punch on boss kill
+    this.scene.cameras.main.zoomTo(1.12, 200);
+    this.scene.time.delayedCall(400, () => {
+      if (!this.scene.gameOver) this.scene.cameras.main.zoomTo(1, 800);
+    });
+
     super.die();
   }
 
@@ -332,6 +410,10 @@ class BlightLord extends Enemy {
         s.pathT = this.pathT;
         this.scene.enemies.push(s);
         floatingText(this.scene, this.x, this.y - 20, 'SPAWN', '#cc4444', 10);
+        // POLISH ADD - Mini shockwave on boss swarmer spawn
+        if (this.scene._spawnShockwave) {
+          this.scene._spawnShockwave(this.x, this.y, 0xcc4444, 1, 250);
+        }
       }
     }
   }

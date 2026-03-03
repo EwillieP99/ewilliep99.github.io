@@ -12,6 +12,9 @@ class GameScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(0x060e08);
     this.cameras.main.fadeIn(200, 0, 0, 0);
 
+    // POLISH ADD - Check if Kenney assets are available
+    this._kenney = this.registry.get('kenneyLoaded') || false;
+
     const save = SaveManager.load();
     const bonuses = getUpgradeBonuses(save);
     this.bonuses = bonuses;
@@ -49,6 +52,12 @@ class GameScene extends Phaser.Scene {
     this._buildTowerPopup();
     this._buildParticles();
 
+    // POLISH ADD - PostFX bloom on camera (WebGL only)
+    this._setupPostFX();
+
+    // POLISH ADD - Ambient pollen particles
+    this._buildAmbientParticles();
+
     /* ── Input ── */
     this.input.on('pointermove', (ptr) => this._onPointerMove(ptr));
     this.input.on('pointerup', (ptr) => this._onPointerUp(ptr));
@@ -62,6 +71,63 @@ class GameScene extends Phaser.Scene {
     }
 
     this._showWaveMessage('Place towers, then START!');
+  }
+
+  // POLISH ADD - PostFX bloom + vignette on main camera
+  _setupPostFX() {
+    try {
+      if (this.cameras.main.postFX) {
+        /* bloom on entire scene — soft glow on bright elements */
+        this._bloomFX = this.cameras.main.postFX.addBloom(0xffffff, 0.8, 0.8, 1.2, 1.5);
+        /* subtle vignette for cinematic feel */
+        this._vignetteFX = this.cameras.main.postFX.addVignette(0.5, 0.5, 0.88, 0.25);
+        console.log('[VS Polish] PostFX bloom + vignette active');
+      }
+    } catch (e) {
+      console.warn('[VS Polish] PostFX not available (Canvas fallback):', e.message);
+    }
+  }
+
+  // POLISH ADD - Ambient floating pollen + firefly particles
+  _buildAmbientParticles() {
+    const playW = 1280 - VS.SIDEBAR_W;
+    const playH = 720 - VS.HUD_H;
+    const cx = VS.SIDEBAR_W + playW / 2;
+    const cy = VS.HUD_H + playH / 2;
+
+    /* drifting pollen across playfield */
+    this.pollenEmitter = this.add.particles(cx, cy, 'pollen', {
+      emitZone: {
+        type: 'random',
+        source: new Phaser.Geom.Rectangle(-playW / 2, -playH / 2, playW, playH),
+      },
+      frequency: 300,
+      quantity: 1,
+      lifespan: { min: 4000, max: 7000 },
+      speed: { min: 5, max: 18 },
+      angle: { min: -30, max: 30 },
+      scale: { start: 0.3, end: 0.05 },
+      alpha: { start: 0.4, end: 0 },
+      tint: [0x88ff88, 0xaaff66, 0xffdd88],
+      blendMode: 'ADD',
+    }).setDepth(1);
+
+    /* mana fireflies near the tree */
+    const end = this.mapData.path[this.mapData.path.length - 1];
+    this.fireflyEmitter = this.add.particles(end.x, end.y, 'manaSpark', {
+      emitZone: {
+        type: 'random',
+        source: new Phaser.Geom.Circle(0, 0, 60),
+      },
+      frequency: 500,
+      quantity: 1,
+      lifespan: { min: 2000, max: 4000 },
+      speed: { min: 8, max: 25 },
+      scale: { start: 0.25, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      tint: [0x44ff88, 0x88ffaa, 0xaaffcc],
+      blendMode: 'ADD',
+    }).setDepth(2);
   }
 
   /* ── Particles ── */
@@ -112,6 +178,87 @@ class GameScene extends Phaser.Scene {
       tint: 0xaacc33,
       emitting: false,
     });
+
+    // POLISH ADD - Confetti burst emitter (for upgrades + victory)
+    this.confettiEmitter = this.add.particles(0, 0, 'confetti', {
+      speed: { min: 80, max: 200 },
+      angle: { min: 220, max: 320 },
+      scale: { start: 1.2, end: 0.3 },
+      lifespan: { min: 600, max: 1200 },
+      tint: [0xffd700, 0xff44aa, 0x44ff44, 0x44aaff, 0xff6644],
+      gravityY: 200,
+      rotate: { min: 0, max: 360 },
+      emitting: false,
+    }).setDepth(25);
+
+    // POLISH ADD - Debris emitter (for enemy death explosions)
+    this.debrisEmitter = this.add.particles(0, 0, 'debris', {
+      speed: { min: 60, max: 180 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 1, end: 0.4 },
+      lifespan: { min: 400, max: 900 },
+      gravityY: 250,
+      rotate: { min: -180, max: 180 },
+      emitting: false,
+    }).setDepth(10);
+
+    // POLISH ADD - Mana seed burst emitter (dropped on enemy death)
+    this.manaSeedEmitter = this.add.particles(0, 0, 'manaSeed', {
+      speed: { min: 30, max: 80 },
+      angle: { min: 200, max: 340 },
+      scale: { start: 1, end: 0 },
+      lifespan: { min: 500, max: 1000 },
+      gravityY: 120,
+      emitting: false,
+      tint: [0x44aaff, 0x66ccff, 0x88ddff],
+    }).setDepth(10);
+
+    // POLISH ADD - Star burst emitter (tower upgrade flash)
+    this.starBurstEmitter = this.add.particles(0, 0, 'starBurst', {
+      speed: { min: 20, max: 60 },
+      scale: { start: 1, end: 0 },
+      lifespan: 400,
+      alpha: { start: 1, end: 0 },
+      tint: [0xffd700, 0xffee88],
+      emitting: false,
+    }).setDepth(20);
+
+    // POLISH ADD - Shockwave visual helper (not a particle, created on demand)
+    // see _spawnShockwave()
+  }
+
+  // POLISH ADD - Spawn expanding shockwave ring
+  _spawnShockwave(x, y, color, maxScale, duration) {
+    const ring = this.add.image(x, y, 'shockwave')
+      .setTint(color || 0xffffff)
+      .setScale(0.1)
+      .setAlpha(0.8)
+      .setDepth(15)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({
+      targets: ring,
+      scale: maxScale || 3,
+      alpha: 0,
+      duration: duration || 500,
+      ease: 'Power2',
+      onComplete: () => ring.destroy(),
+    });
+  }
+
+  // POLISH ADD - Confetti explosion at a point
+  confettiExplode(x, y, count) {
+    this.confettiEmitter.explode(count || 30, x, y);
+  }
+
+  // POLISH ADD - Debris explosion at a point
+  debrisExplode(x, y, color, count) {
+    if (color) this.debrisEmitter.setParticleTint(color);
+    this.debrisEmitter.explode(count || 8, x, y);
+  }
+
+  // POLISH ADD - Mana seed drop at a point
+  manaSeedDrop(x, y, count) {
+    this.manaSeedEmitter.explode(count || 3, x, y);
   }
 
   /* ── Map Drawing ── */
@@ -163,27 +310,53 @@ class GameScene extends Phaser.Scene {
       this.tileSprites.push(ts);
     }
 
+    // POLISH ADD - Scatter Kenney decorations along path edges
+    if (this._kenney) {
+      this._scatterDecorations();
+    }
+
     /* tree at end */
     const end = path[path.length - 1];
-    this.treeSprite = this.add.image(end.x, end.y, 'tree').setScale(1.8).setDepth(3);
+    // POLISH ADD - Use Kenney tree if available
+    if (this._kenney) {
+      this.treeSprite = this.add.image(end.x, end.y - 10, 'k_tree').setScale(0.7).setDepth(3);
+    } else {
+      this.treeSprite = this.add.image(end.x, end.y, 'tree').setScale(1.8).setDepth(3);
+    }
 
     /* tree glow */
-    this.treeGlow = this.add.image(end.x, end.y, 'glow')
-      .setScale(4).setAlpha(0.1).setTint(0x44ff44).setDepth(2);
+    this.treeGlow = this.add.image(end.x, end.y, 'bloomGlow') // POLISH ADD - use bloomGlow texture
+      .setScale(5).setAlpha(0.12).setTint(0x44ff44).setDepth(2)
+      .setBlendMode(Phaser.BlendModes.ADD); // POLISH ADD - additive blend
     this.tweens.add({
       targets: this.treeGlow,
-      alpha: { from: 0.06, to: 0.15 },
-      scale: { from: 3.5, to: 4.5 },
+      alpha: { from: 0.06, to: 0.18 },
+      scale: { from: 4.5, to: 6 },
       duration: 2000,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut',
     });
 
+    // POLISH ADD - Second glow layer on tree for bloom intensity
+    this.treeGlow2 = this.add.image(end.x, end.y, 'bloomGlow')
+      .setScale(2.5).setAlpha(0.08).setTint(0x88ffaa).setDepth(2)
+      .setBlendMode(Phaser.BlendModes.ADD);
+    this.tweens.add({
+      targets: this.treeGlow2,
+      alpha: { from: 0.04, to: 0.12 },
+      scale: { from: 2, to: 3 },
+      duration: 1500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+      delay: 500,
+    });
+
     /* tree sway */
     this.tweens.add({
       targets: this.treeSprite,
-      angle: { from: -1, to: 1 },
+      angle: { from: -1.5, to: 1.5 },
       duration: 2500,
       yoyo: true,
       repeat: -1,
@@ -192,18 +365,79 @@ class GameScene extends Phaser.Scene {
 
     /* spawn portal */
     const start = path[0];
-    const portal = this.add.circle(start.x, start.y, 14, 0xcc4444, 0.2).setDepth(2);
+    // POLISH ADD - Use Kenney spawn portal if available
+    if (this._kenney) {
+      this.spawnPortal = this.add.image(start.x, start.y, 'k_spawn').setScale(0.5).setDepth(2).setAlpha(0.8);
+      this.tweens.add({
+        targets: this.spawnPortal,
+        scale: { from: 0.45, to: 0.55 },
+        alpha: { from: 0.6, to: 0.9 },
+        angle: { from: -3, to: 3 },
+        duration: 1200,
+        yoyo: true,
+        repeat: -1,
+      });
+    } else {
+      const portal = this.add.circle(start.x, start.y, 14, 0xcc4444, 0.2).setDepth(2);
+      this.tweens.add({
+        targets: portal,
+        scale: { from: 0.8, to: 1.3 },
+        alpha: { from: 0.1, to: 0.3 },
+        duration: 1000,
+        yoyo: true,
+        repeat: -1,
+      });
+    }
+    // POLISH ADD - Spawn portal glow
+    const spawnGlow = this.add.image(start.x, start.y, 'bloomGlow')
+      .setScale(2).setAlpha(0.08).setTint(0xff4444).setDepth(1)
+      .setBlendMode(Phaser.BlendModes.ADD);
     this.tweens.add({
-      targets: portal,
-      scale: { from: 0.8, to: 1.3 },
-      alpha: { from: 0.1, to: 0.3 },
-      duration: 1000,
+      targets: spawnGlow,
+      scale: { from: 1.5, to: 2.5 },
+      alpha: { from: 0.04, to: 0.12 },
+      duration: 800,
       yoyo: true,
       repeat: -1,
     });
+
     this.add.text(start.x, start.y - 22, 'SPAWN', {
       fontSize: '8px', fill: '#aa4444', fontFamily: 'monospace'
     }).setOrigin(0.5).setDepth(2);
+  }
+
+  // POLISH ADD - Scatter Kenney decorative elements along the map
+  _scatterDecorations() {
+    const decoKeys = ['k_deco_crystal', 'k_deco_rocks', 'k_deco_tree'];
+    const path = this.mapData.path;
+    const tiles = this.mapData.placementTiles;
+    let placed = 0;
+    const maxDecos = 8;
+
+    for (let i = 0; i < path.length - 1 && placed < maxDecos; i++) {
+      if (Math.random() > 0.4) continue;
+      const p = path[i];
+      /* offset from path so it doesn't overlap */
+      const offX = (Math.random() - 0.5) * 80;
+      const offY = (Math.random() - 0.5) * 80;
+      const dx = p.x + offX;
+      const dy = p.y + offY;
+      /* don't place on tiles or out of bounds */
+      if (dx < VS.SIDEBAR_W + 30 || dx > 1250 || dy < VS.HUD_H + 20 || dy > 700) continue;
+      let tooCloseToTile = false;
+      for (const t of tiles) {
+        if (Math.abs(t.x - dx) < 24 && Math.abs(t.y - dy) < 24) { tooCloseToTile = true; break; }
+      }
+      if (tooCloseToTile) continue;
+
+      const key = decoKeys[Math.floor(Math.random() * decoKeys.length)];
+      this.add.image(dx, dy, key)
+        .setScale(0.2 + Math.random() * 0.15)
+        .setAlpha(0.5 + Math.random() * 0.3)
+        .setDepth(1)
+        .setAngle(Math.random() * 20 - 10);
+      placed++;
+    }
   }
 
   /* ── Sidebar ── */
@@ -223,11 +457,18 @@ class GameScene extends Phaser.Scene {
       const y = 55 + i * 125;
       const cx = VS.SIDEBAR_W / 2;
 
-      /* tower icon using generated sprite */
-      const texKey = 'tower_' + def.id;
+      // POLISH ADD - Use Kenney tower sprites in sidebar if available
+      const kKey = 'k_tower_' + def.id;
+      const texKey = this._kenney && this.textures.exists(kKey) ? kKey : 'tower_' + def.id;
       const icon = this.add.image(cx, y, this.textures.exists(texKey) ? texKey : 'circle')
-        .setDepth(11).setScale(0.9);
-      if (!this.textures.exists(texKey)) icon.setTint(def.color);
+        .setDepth(11);
+      // POLISH ADD - Scale Kenney icons to fit sidebar
+      if (texKey.startsWith('k_')) {
+        icon.setScale(0.55);
+      } else {
+        icon.setScale(0.9);
+        if (!this.textures.exists(texKey)) icon.setTint(def.color);
+      }
 
       /* interactive area */
       const hitArea = this.add.rectangle(cx, y, 50, 50, 0x000000, 0)
@@ -394,7 +635,7 @@ class GameScene extends Phaser.Scene {
   updateHUD() {
     this.hud.mana.setText(String(this.mana));
     this.hud.wave.setText(`Wave ${this.waveIndex}/${this.mapData.waves.length}`);
-    this.hud.lives.setText(`♥ ${this.lives}`);
+    this.hud.lives.setText(`\u2665 ${this.lives}`);
     this.hud.score.setText(`Score: ${this.score}`);
     const spd = VS.SPEEDS[this.speedIdx];
     this.hud.speedText.setText(spd + 'x');
@@ -441,11 +682,17 @@ class GameScene extends Phaser.Scene {
     this.deselectTower();
     this.dragIdx = idx;
 
-    const texKey = 'tower_' + def.id;
+    // POLISH ADD - Use Kenney tower sprite for drag ghost
+    const kKey = 'k_tower_' + def.id;
+    const texKey = this._kenney && this.textures.exists(kKey) ? kKey : 'tower_' + def.id;
     this.dragGhost = this.add.image(ptr.x, ptr.y,
       this.textures.exists(texKey) ? texKey : 'circle')
       .setAlpha(0.6).setDepth(15);
-    if (!this.textures.exists(texKey)) this.dragGhost.setTint(def.color);
+    if (texKey.startsWith('k_')) {
+      this.dragGhost.setScale(0.55);
+    } else if (!this.textures.exists(texKey)) {
+      this.dragGhost.setTint(def.color);
+    }
 
     this.dragRange = this.add.graphics().setDepth(14);
     this._drawDragRange(ptr.x, ptr.y, def.range);
@@ -542,6 +789,10 @@ class GameScene extends Phaser.Scene {
     tower.rate = Math.round(tower.rate * (1 - this.bonuses.towerRate));
 
     this.towers.push(tower);
+
+    // POLISH ADD - Place shockwave + dust particles on tower placement
+    this._spawnShockwave(tile.x, tile.y, 0x44ff44, 1.5, 300);
+
     this.updateHUD();
   }
 
@@ -550,6 +801,19 @@ class GameScene extends Phaser.Scene {
     this.deselectTower();
     this.selectedTower = tower;
     tower.showRange(true);
+
+    // POLISH ADD - Show Kenney selection ring under selected tower
+    if (this._kenney && this.textures.exists('k_selection')) {
+      if (this._selectionRing) this._selectionRing.destroy();
+      this._selectionRing = this.add.image(tower.x, tower.y, 'k_selection')
+        .setScale(0.5).setDepth(3).setAlpha(0.7);
+      this.tweens.add({
+        targets: this._selectionRing,
+        angle: 360,
+        duration: 3000,
+        repeat: -1,
+      });
+    }
 
     const py = tower.y < 200 ? tower.y + 75 : tower.y - 75;
     const px = clamp(tower.x, VS.SIDEBAR_W + 90, 1190);
@@ -580,12 +844,29 @@ class GameScene extends Phaser.Scene {
       this.selectedTower.showRange(false);
       this.selectedTower = null;
     }
+    // POLISH ADD - Remove selection ring
+    if (this._selectionRing) {
+      this._selectionRing.destroy();
+      this._selectionRing = null;
+    }
     this.popup.container.setVisible(false);
   }
 
   _upgradeTower() {
     if (!this.selectedTower) return;
     if (this.selectedTower.upgrade()) {
+      // POLISH ADD - Upgrade confetti + star burst + shockwave
+      const t = this.selectedTower;
+      this.confettiExplode(t.x, t.y, 40);
+      this.starBurstEmitter.explode(8, t.x, t.y);
+      this._spawnShockwave(t.x, t.y, 0xffd700, 2, 400);
+
+      // POLISH ADD - Camera punch zoom on upgrade
+      this.cameras.main.zoomTo(1.03, 150);
+      this.time.delayedCall(200, () => {
+        if (!this.gameOver) this.cameras.main.zoomTo(1, 300);
+      });
+
       this.selectTower(this.selectedTower);
       this.updateHUD();
     }
@@ -641,13 +922,32 @@ class GameScene extends Phaser.Scene {
 
     this._showWaveMessage(`Wave ${this.waveIndex}`);
 
+    // POLISH ADD - Shockwave on wave start at spawn point
+    const start = this.mapData.path[0];
+    this._spawnShockwave(start.x, start.y, 0xcc4444, 2, 500);
+
     /* camera zoom for boss waves */
     const hasBoss = waveData.some(g => g.type === 'blightlord');
     if (hasBoss) {
       this._showWaveMessage(`BOSS WAVE ${this.waveIndex}!`);
-      this.cameras.main.zoomTo(1.02, 500);
+      // POLISH ADD - Enhanced boss wave camera + shockwave
+      this.cameras.main.zoomTo(1.08, 800);
+      this.cameras.main.shake(300, 0.008);
+      this._spawnShockwave(start.x, start.y, 0xff2222, 4, 800);
       this.time.delayedCall(3000, () => {
-        if (!this.gameOver) this.cameras.main.zoomTo(1, 1000);
+        if (!this.gameOver) this.cameras.main.zoomTo(1, 1500);
+      });
+      // POLISH ADD - Bloom pulse on boss wave
+      if (this._bloomFX) {
+        const origStr = this._bloomFX.strength;
+        this._bloomFX.strength = 3;
+        this.time.delayedCall(800, () => { if (this._bloomFX) this._bloomFX.strength = origStr; });
+      }
+    } else {
+      // POLISH ADD - Mild zoom on regular waves
+      this.cameras.main.zoomTo(1.02, 400);
+      this.time.delayedCall(1500, () => {
+        if (!this.gameOver) this.cameras.main.zoomTo(1, 800);
       });
     }
 
@@ -668,6 +968,13 @@ class GameScene extends Phaser.Scene {
     this.addMana(bonus);
     this.score += 10;
     SFX.manaPickup();
+
+    // POLISH ADD - Debris explosion on enemy death
+    this.debrisExplode(enemy.x, enemy.y, enemy.def.color, enemy.boss ? 16 : 6);
+
+    // POLISH ADD - Mana seed drops from dead enemies
+    this.manaSeedDrop(enemy.x, enemy.y, enemy.boss ? 8 : 3);
+
     this.updateHUD();
   }
 
@@ -675,8 +982,20 @@ class GameScene extends Phaser.Scene {
     const dmg = enemy.boss ? 5 : 1;
     this.lives -= dmg;
 
-    /* camera effects */
-    this.cameras.main.shake(200 + (enemy.boss ? 200 : 0), enemy.boss ? 0.012 : 0.005);
+    // POLISH ADD - Enhanced camera effects on tree damage
+    this.cameras.main.shake(200 + (enemy.boss ? 300 : 0), enemy.boss ? 0.015 : 0.006);
+
+    // POLISH ADD - Red flash vignette pulse on damage
+    if (this._vignetteFX) {
+      this._vignetteFX.strength = 0.6;
+      this.time.delayedCall(300, () => {
+        if (this._vignetteFX) this._vignetteFX.strength = 0.25;
+      });
+    }
+
+    // POLISH ADD - Shockwave on tree when hit
+    const end = this.mapData.path[this.mapData.path.length - 1];
+    this._spawnShockwave(end.x, end.y, 0xff4444, 2, 400);
 
     if (this.lives <= 0) {
       this.lives = 0;
@@ -698,9 +1017,15 @@ class GameScene extends Phaser.Scene {
     if (this.paused) {
       this.pauseOverlay.setVisible(true);
       this.pauseText.setVisible(true);
+      // POLISH ADD - Pause ambient particles
+      if (this.pollenEmitter) this.pollenEmitter.pause();
+      if (this.fireflyEmitter) this.fireflyEmitter.pause();
     } else {
       this.pauseOverlay.setVisible(false);
       this.pauseText.setVisible(false);
+      // POLISH ADD - Resume ambient particles
+      if (this.pollenEmitter) this.pollenEmitter.resume();
+      if (this.fireflyEmitter) this.fireflyEmitter.resume();
     }
   }
 
@@ -708,6 +1033,13 @@ class GameScene extends Phaser.Scene {
   _triggerSlowMo(duration) {
     this._slowMoTimer = duration;
     this._slowMoFactor = 0.3;
+    // POLISH ADD - Bloom intensity pulse during slow-mo
+    if (this._bloomFX) {
+      this._bloomFX.strength = 3;
+      this.time.delayedCall(duration, () => {
+        if (this._bloomFX) this._bloomFX.strength = 1.5;
+      });
+    }
   }
 
   /* ── Game Over / Victory ── */
@@ -717,7 +1049,15 @@ class GameScene extends Phaser.Scene {
     const flash = this.add.rectangle(640, 360, 1280, 720, 0xff0000, 0.2).setDepth(30);
     this.tweens.add({ targets: flash, alpha: 0, duration: 500 });
 
-    this.cameras.main.shake(500, 0.02);
+    // POLISH ADD - Stronger shake + zoom out on game over
+    this.cameras.main.shake(600, 0.025);
+    this.cameras.main.zoomTo(0.95, 1000);
+
+    // POLISH ADD - Bloom flash on defeat
+    if (this._bloomFX) {
+      this._bloomFX.strength = 5;
+      this.time.delayedCall(500, () => { if (this._bloomFX) this._bloomFX.strength = 1.5; });
+    }
 
     this.time.delayedCall(1200, () => {
       this.scene.start('GameOverScene', {
@@ -740,6 +1080,21 @@ class GameScene extends Phaser.Scene {
 
       this._showWaveMessage('ALL WAVES CLEARED!');
       this._triggerSlowMo(800);
+
+      // POLISH ADD - Victory confetti shower
+      const cx = 690, cy = 200;
+      for (let i = 0; i < 5; i++) {
+        this.time.delayedCall(i * 150, () => {
+          this.confettiExplode(cx + (Math.random() - 0.5) * 400, cy + Math.random() * 100, 25);
+        });
+      }
+
+      // POLISH ADD - Victory shockwave from tree
+      const end = this.mapData.path[this.mapData.path.length - 1];
+      this._spawnShockwave(end.x, end.y, 0x44ff44, 5, 1000);
+
+      // POLISH ADD - Victory zoom
+      this.cameras.main.zoomTo(1.1, 800);
 
       this.time.delayedCall(2000, () => {
         this.scene.start('VictoryScene', {
@@ -810,6 +1165,8 @@ class GameScene extends Phaser.Scene {
       this._checkVictory();
       if (!this.gameOver) {
         this._showWaveMessage('Wave cleared!');
+        // POLISH ADD - Wave clear confetti burst
+        this.confettiExplode(690, 360, 20);
       }
     }
   }
