@@ -6,7 +6,10 @@
       "Bash(wc:*)",
       "Bash(npx vite:*)",
       "Bash(curl:*)",
-      "Bash(do node:*)"
+      "Bash(do node:*)",
+      "Bash(npx tsc:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npm install:*)"
     ]
   },
   "spinnerTipsEnabled": false

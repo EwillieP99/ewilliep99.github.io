@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 import fs from "fs";
 
@@ -25,7 +26,37 @@ function serveGamesPlugin() {
 }
 
 export default defineConfig({
-  plugins: [serveGamesPlugin(), react(), tailwindcss()],
+  plugins: [
+    serveGamesPlugin(),
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["icon.svg", "assets/IMG_5245.jpeg"],
+      manifest: {
+        name: "Neon Operator — Ethan Pecora",
+        short_name: "NEON_OP",
+        description: "AI-fluent tech sales operator. $110K ARR, 400+ users, communities built from scratch.",
+        theme_color: "#0a0f1e",
+        background_color: "#0a0f1e",
+        display: "standalone",
+        start_url: "/",
+        icons: [
+          {
+            src: "/icon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
+          },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        // Don't cache game assets or large images in service worker
+        globIgnores: ["games/**/*"],
+      },
+    }),
+  ],
   base: "/",
   resolve: {
     alias: {
