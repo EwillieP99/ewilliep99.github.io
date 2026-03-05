@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Keyboard, Cpu, Trophy, Gamepad2 } from "lucide-react";
 import { Tag } from "@/components/ui/Tag";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { Game } from "@/data/games";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -27,6 +28,7 @@ export function GameLauncherModal({ game, onClose }: GameLauncherModalProps) {
   const isOpen = game !== null;
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [highScore, setHighScore] = useState(0);
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   // Load high score when game changes
   useEffect(() => {
@@ -74,6 +76,7 @@ export function GameLauncherModal({ game, onClose }: GameLauncherModalProps) {
     <AnimatePresence>
       {isOpen && game && (
         <motion.div
+          ref={trapRef}
           className="fixed inset-0 z-[60] bg-navy-950"
           role="dialog"
           aria-modal="true"

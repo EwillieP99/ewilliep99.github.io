@@ -2,6 +2,7 @@ import { useRef, useEffect, type KeyboardEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Terminal as TerminalIcon } from "lucide-react";
 import { useTerminal } from "@/hooks/useTerminal";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface TerminalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export function Terminal({ isOpen, onClose }: TerminalProps) {
   const { lines, input, setInput, handleCommand } = useTerminal();
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   // Focus input when terminal opens
   useEffect(() => {
@@ -52,12 +54,14 @@ export function Terminal({ isOpen, onClose }: TerminalProps) {
 
           {/* Terminal window */}
           <motion.div
+            ref={trapRef}
             initial={{ opacity: 0, y: 40, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-x-4 top-[10%] sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-[640px] z-[61] max-h-[70vh] flex flex-col terminal-card overflow-hidden"
             role="dialog"
+            aria-modal="true"
             aria-label="Interactive Terminal"
           >
             {/* Title bar */}

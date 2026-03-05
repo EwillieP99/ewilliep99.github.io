@@ -6,6 +6,7 @@ import { HoloCard } from "@/components/ui/HoloCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { skillGroups, type SkillGroup, type Skill } from "@/data/skills";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { cn } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -31,6 +32,8 @@ function SkillDetailModal({
   color: string;
   onClose: () => void;
 }) {
+  const trapRef = useFocusTrap<HTMLDivElement>(skill !== null);
+
   useEffect(() => {
     if (!skill) return;
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -46,6 +49,7 @@ function SkillDetailModal({
     <AnimatePresence>
       {skill && (
         <motion.div
+          ref={trapRef}
           className="fixed inset-0 z-[60] flex items-center justify-center px-4"
           role="dialog"
           aria-modal="true"
@@ -119,7 +123,14 @@ function SkillDetailModal({
                 <p className="text-[10px] font-mono uppercase tracking-widest text-slate-600 mb-2">
                   Proficiency Level
                 </p>
-                <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div
+                  className="h-1.5 rounded-full bg-white/5 overflow-hidden"
+                  role="progressbar"
+                  aria-valuenow={skill.proficiency}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${skill.label} proficiency: ${skill.proficiency}%`}
+                >
                   <motion.div
                     className="h-full rounded-full"
                     style={{ background: color }}

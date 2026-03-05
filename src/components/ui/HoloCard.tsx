@@ -71,6 +71,7 @@ export function HoloCard({
     >
       {/* ── Perspective border glow that follows mouse ───────────────── */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 rounded-xl pointer-events-none transition-opacity duration-300"
         style={{
           opacity: isHovered ? 1 : 0,
@@ -84,6 +85,7 @@ export function HoloCard({
 
       {/* ── Border highlight that follows cursor ─────────────────────── */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 rounded-xl pointer-events-none transition-opacity duration-300"
         style={{
           opacity: isHovered ? 1 : 0,
@@ -103,6 +105,7 @@ export function HoloCard({
 
       {/* ── Shine sweep on hover ─────────────────────────────────────── */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 pointer-events-none transition-opacity duration-500"
         style={{
           opacity: isHovered ? 0.06 : 0,
@@ -117,6 +120,7 @@ export function HoloCard({
 
       {/* ── Inner neon glow (bottom edge) ────────────────────────────── */}
       <div
+        aria-hidden="true"
         className="absolute bottom-0 left-[10%] right-[10%] h-px pointer-events-none transition-opacity duration-300"
         style={{
           opacity: isHovered ? 0.6 : 0.15,

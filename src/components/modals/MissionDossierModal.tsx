@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { X, Shield, Target, BookOpen, FileText } from "lucide-react";
 import { Tag } from "@/components/ui/Tag";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/data/projects";
 
@@ -64,6 +65,7 @@ function ResultCounter({ label, value, delay }: { label: string; value: string; 
 
 export function MissionDossierModal({ project, onClose }: MissionDossierModalProps) {
   const isOpen = project !== null;
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   // Lock body scroll
   useEffect(() => {
@@ -84,6 +86,7 @@ export function MissionDossierModal({ project, onClose }: MissionDossierModalPro
     <AnimatePresence>
       {isOpen && project && (
         <motion.div
+          ref={trapRef}
           className="fixed inset-0 z-[60] flex items-start justify-center overflow-y-auto"
           role="dialog"
           aria-modal="true"

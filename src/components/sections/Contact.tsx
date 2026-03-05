@@ -26,9 +26,9 @@ const contactSchema = z.object({
 type ContactForm = z.infer<typeof contactSchema>;
 
 // ── EmailJS config — replace with your actual IDs ───────────────────────────
-const EMAILJS_SERVICE_ID = "YOUR_SERVICE_ID";
-const EMAILJS_TEMPLATE_ID = "YOUR_TEMPLATE_ID";
-const EMAILJS_PUBLIC_KEY = "YOUR_PUBLIC_KEY";
+const EMAILJS_SERVICE_ID = "service_boc1dxx";
+const EMAILJS_TEMPLATE_ID = "template_n35vsjo";
+const EMAILJS_PUBLIC_KEY = "WmdpVeh2gIDlOHFzO";
 
 /** Animated signal strength meter */
 function SignalStrengthMeter({ active }: { active: boolean }) {
@@ -158,15 +158,6 @@ export function Contact() {
   });
 
   const onSubmit = async (data: ContactForm) => {
-    // If EmailJS is not configured, fall back to mailto
-    if (EMAILJS_SERVICE_ID === "YOUR_SERVICE_ID") {
-      window.location.href = `mailto:${bio.email}?subject=Hey ${bio.firstName}&body=${encodeURIComponent(data.message)}`;
-      toast.success("Opening email client...", {
-        style: { background: "#0d1332", border: "1px solid rgba(0,245,255,0.3)", color: "#e2e8f0" },
-      });
-      return;
-    }
-
     setStatus("sending");
     try {
       // Dynamic import to keep EmailJS out of the main bundle
@@ -186,7 +177,8 @@ export function Contact() {
       toast.success("Message transmitted successfully!", {
         style: { background: "#0d1332", border: "1px solid rgba(0,245,255,0.3)", color: "#e2e8f0" },
       });
-    } catch {
+    } catch (err) {
+      console.error("EmailJS error:", err);
       setStatus("error");
       toast.error("Transmission failed. Try email directly.", {
         style: { background: "#0d1332", border: "1px solid rgba(244,114,182,0.3)", color: "#e2e8f0" },

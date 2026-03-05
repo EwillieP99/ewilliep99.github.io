@@ -54,7 +54,7 @@ function CRTGameCard({
         aria-label={isLive ? `Launch ${game.title}` : `${game.title} — coming soon`}
       >
         {/* CRT bezel top */}
-        <div className="relative h-10 bg-[#0c0e1a] border-b border-white/5 flex items-center px-4 gap-3">
+        <div className="relative h-10 bg-[#0c0e1a] border-b border-white/5 flex items-center px-4 gap-3" aria-hidden="true">
           {/* CRT dots */}
           <div className="flex gap-1.5">
             <span className="w-2 h-2 rounded-full bg-red-500/50" />

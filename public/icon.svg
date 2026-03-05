@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#0a0f1e"/>
+  <rect x="16" y="16" width="480" height="480" rx="48" fill="none" stroke="#00f5ff" stroke-width="4" opacity="0.3"/>
+  <text x="256" y="290" text-anchor="middle" font-family="monospace" font-weight="900" font-size="220" fill="#00f5ff" filter="url(#glow)">NO</text>
+  <text x="256" y="420" text-anchor="middle" font-family="monospace" font-weight="600" font-size="72" fill="#a855f7" opacity="0.8">OPERATOR</text>
+  <defs>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+</svg>
