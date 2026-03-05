@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface MousePosition {
   x: number;
@@ -27,4 +27,25 @@ export function useMousePosition(): MousePosition {
   }, []);
 
   return pos;
+}
+
+/**
+ * Ref-based mouse position that writes directly to a DOM element's
+ * background gradient, avoiding React re-renders entirely.
+ */
+export function useMouseGlow(glowColor: string) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  const updateGlow = useCallback((e: MouseEvent) => {
+    if (ref.current) {
+      ref.current.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, ${glowColor}, transparent 70%)`;
+    }
+  }, [glowColor]);
+
+  useEffect(() => {
+    window.addEventListener("mousemove", updateGlow, { passive: true });
+    return () => window.removeEventListener("mousemove", updateGlow);
+  }, [updateGlow]);
+
+  return ref;
 }

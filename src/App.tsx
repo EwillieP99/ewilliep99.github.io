@@ -17,7 +17,7 @@ import { MatrixRain } from "@/components/effects/MatrixRain";
 // Lazy-load ambient background effects (not critical for initial render)
 const DataStream = lazy(() => import("@/components/effects/DataStream").then((m) => ({ default: m.DataStream })));
 const CircuitGrid = lazy(() => import("@/components/effects/CircuitGrid").then((m) => ({ default: m.CircuitGrid })));
-import { useMousePosition } from "@/hooks/useMousePosition";
+import { useMouseGlow } from "@/hooks/useMousePosition";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 // Theme modes: neon (default), matrix (green), overdrive (max glow)
@@ -26,7 +26,6 @@ export type ThemeMode = "neon" | "matrix" | "overdrive";
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("neon");
   const [terminalOpen, setTerminalOpen] = useState(false);
-  const { x, y } = useMousePosition();
   const prefersReduced = useReducedMotion();
 
   // Listen for theme toggle from terminal commands
@@ -41,16 +40,24 @@ export default function App() {
     return () => window.removeEventListener("toggle-theme", handler);
   }, []);
 
-  // Theme-based glow color
+  // Theme-based glow color — ref-based to avoid re-renders
   const glowColor = {
     neon: "rgba(0,245,255,0.08)",
     matrix: "rgba(34,197,94,0.08)",
     overdrive: "rgba(244,114,182,0.12)",
   }[theme];
+  const glowRef = useMouseGlow(glowColor);
 
   return (
     <NavigationProvider>
       <div className="min-h-screen bg-navy-950 text-slate-200 relative">
+        {/* Skip to content — visible only on keyboard focus */}
+        <a
+          href="#about"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-neon-cyan focus:text-navy-950 focus:font-mono focus:text-sm focus:font-bold focus:outline-none"
+        >
+          Skip to content
+        </a>
         {/* Fixed gradient background */}
         <div
           className="fixed inset-0 pointer-events-none z-0"
@@ -64,13 +71,11 @@ export default function App() {
           aria-hidden="true"
         />
 
-        {/* Cursor-following glow (desktop only) */}
+        {/* Cursor-following glow (desktop only, ref-based — no re-renders) */}
         {!prefersReduced && (
           <div
+            ref={glowRef}
             className="fixed inset-0 pointer-events-none z-[2] hidden md:block"
-            style={{
-              background: `radial-gradient(600px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`,
-            }}
             aria-hidden="true"
           />
         )}
@@ -102,7 +107,7 @@ export default function App() {
         <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} />
 
         {/* Main content */}
-        <main className="relative z-10">
+        <main className="relative z-10" role="main" aria-label="Portfolio content">
           <Hero />
           <About />
           <Timeline />
