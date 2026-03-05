@@ -33,7 +33,6 @@ export default defineConfig({
     vercel(),
   ],
   base: "/",
-  assetsInclude: ["**/*.html"],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
