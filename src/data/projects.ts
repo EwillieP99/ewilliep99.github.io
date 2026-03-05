@@ -24,6 +24,10 @@ export interface Project {
   impact: string; // One-line impact statement
   category: "sales" | "ai" | "systems" | "community";
   status?: "classified" | "active"; // Badge style
+  // Direct action links
+  notionUrl?: string;
+  liveUrl?: string;
+  githubUrl?: string;
   // Dossier modal content
   dossier?: {
     fullDescription: string;

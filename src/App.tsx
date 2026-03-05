@@ -17,6 +17,7 @@ import { MatrixRain } from "@/components/effects/MatrixRain";
 // Lazy-load ambient background effects (not critical for initial render)
 const DataStream = lazy(() => import("@/components/effects/DataStream").then((m) => ({ default: m.DataStream })));
 const CircuitGrid = lazy(() => import("@/components/effects/CircuitGrid").then((m) => ({ default: m.CircuitGrid })));
+const EchoAI = lazy(() => import("@/components/EchoAI"));
 import { useMouseGlow } from "@/hooks/useMousePosition";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -105,6 +106,11 @@ export default function App() {
 
         {/* Interactive terminal */}
         <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} />
+
+        {/* ECHO AI chat assistant */}
+        <Suspense fallback={null}>
+          <EchoAI terminalOpen={terminalOpen} />
+        </Suspense>
 
         {/* Main content */}
         <main className="relative z-10" role="main" aria-label="Portfolio content">
