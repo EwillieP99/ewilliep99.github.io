@@ -23,6 +23,13 @@ export interface Project {
   featured: boolean;
   impact: string; // One-line impact statement
   category: "sales" | "ai" | "systems" | "community";
+  status?: "classified" | "active"; // Badge style
+  // Dossier modal content
+  dossier?: {
+    fullDescription: string;
+    results: ProjectMetric[];
+    debrief: string[];
+  };
 }
 
 export const projects: Project[] = [
@@ -42,6 +49,22 @@ export const projects: Project[] = [
     featured: true,
     impact: "Built repeatable OS used daily across 25+ active projects",
     category: "systems",
+    status: "classified",
+    dossier: {
+      fullDescription:
+        "A comprehensive personal operating system built entirely in Notion, designed around the principle that good systems eliminate the need for willpower. The Life OS covers goal-setting with OKR cascades, weekly review rituals, project pipeline management with Kanban + timeline views, habit tracking loops, and an outreach CRM for networking. Every template is interconnected — a weekly review surfaces incomplete tasks, upcoming deadlines, and habit streaks automatically.",
+      results: [
+        { label: "Templates Active", value: "12" },
+        { label: "Weekly Review Streak", value: "30+" },
+        { label: "Projects Tracked", value: "25+" },
+        { label: "Daily Active Use", value: "365+ days" },
+      ],
+      debrief: [
+        "The best system is one you actually use — simplicity beats feature-completeness every time.",
+        "Connecting databases via relations turns Notion from a note app into a real operating system.",
+        "Weekly reviews are the single highest-leverage habit for staying on course.",
+      ],
+    },
   },
   {
     id: "comet-dashboards",
@@ -54,6 +77,22 @@ export const projects: Project[] = [
     featured: true,
     impact: "Tracked 400+ activations → drove data-backed campus decisions",
     category: "ai",
+    status: "classified",
+    dossier: {
+      fullDescription:
+        "Built custom analytics dashboards on the Comet platform to track ambassador performance metrics across Perplexity's campus network. The system tracked individual ambassador activity, workshop attendance, trial-to-signup conversion funnels, and school-level engagement over time. Data was used to identify top performers for recognition, coach underperformers with specific action items, and make resource allocation decisions about which campuses to double down on.",
+      results: [
+        { label: "Users Tracked", value: "400+" },
+        { label: "Conversion Rate", value: "67%" },
+        { label: "Campuses Monitored", value: "5" },
+        { label: "Ambassadors Managed", value: "15+" },
+      ],
+      debrief: [
+        "You can't improve what you don't measure — dashboards turned gut feelings into coaching conversations.",
+        "Conversion rate matters more than raw signups; focusing on quality workshops beat mass flyering.",
+        "Sharing dashboards with the team created healthy competition and accountability.",
+      ],
+    },
   },
   {
     id: "campus-playbook",
@@ -66,6 +105,22 @@ export const projects: Project[] = [
     featured: true,
     impact: "Scaled ambassador program 0→15 across 5 universities",
     category: "sales",
+    status: "classified",
+    dossier: {
+      fullDescription:
+        "Created a documented, repeatable go-to-market playbook for launching campus ambassador programs from scratch. The playbook covers end-to-end: sourcing and recruiting ambassadors via cold DMs and org partnerships, structured onboarding with role expectations and tool setup, weekly cadences with activity targets and check-ins, and KPI tracking frameworks. Used at Perplexity AI to scale from 0 to 15+ ambassadors across 5 universities, driving 400+ user activations with a 67% trial-to-signup conversion rate.",
+      results: [
+        { label: "Ambassadors Recruited", value: "15+" },
+        { label: "Universities", value: "5" },
+        { label: "User Activations", value: "400+" },
+        { label: "Conversion Rate", value: "67%" },
+      ],
+      debrief: [
+        "Documentation is a force multiplier — a good playbook lets new ambassadors ramp in days, not weeks.",
+        "The recruiting script matters less than the follow-up cadence; persistence beats polish.",
+        "Setting clear weekly activity targets (workshops/week, signups/workshop) made coaching specific and actionable.",
+      ],
+    },
   },
   {
     id: "ai-workflows",
@@ -78,6 +133,22 @@ export const projects: Project[] = [
     featured: false,
     impact: "Eliminated 80% of repetitive cognitive work with AI tooling",
     category: "ai",
+    status: "active",
+    dossier: {
+      fullDescription:
+        "A curated stack of AI-powered tools and custom prompt systems used daily across sales, research, and communication workflows. Includes templated prompt chains for outreach email drafting, meeting prep research briefs, post-call retrospective analysis, and content synthesis from long-form sources. Built with the philosophy that AI should handle the 80% of rote cognitive work so human judgment can focus on the 20% that actually matters.",
+      results: [
+        { label: "Cognitive Load Reduced", value: "~80%" },
+        { label: "Prompt Templates", value: "15+" },
+        { label: "Daily Active Use", value: "Yes" },
+        { label: "Time Saved/Week", value: "5+ hrs" },
+      ],
+      debrief: [
+        "The best AI workflows are invisible — they should feel like thinking faster, not using a tool.",
+        "Prompt engineering is really just clear communication; the skill transfers directly to sales.",
+        "Automation without quality checks creates confident garbage — always verify AI output.",
+      ],
+    },
   },
 ];
 

@@ -1,14 +1,100 @@
-import { motion } from "framer-motion";
-import { Linkedin, Github, Twitter, Mail } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { Linkedin, Github, Twitter, Mail, Download } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
+import { HoloCard } from "@/components/ui/HoloCard";
 import { Card } from "@/components/ui/Card";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { GlitchText } from "@/components/effects/GlitchText";
 import { bio, holoStats } from "@/data/bio";
+import { cn } from "@/lib/utils";
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Core Directive taglines that rotate
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const CORE_DIRECTIVES = [
+  "Closing Tomorrow's Deals Today",
+  "Bridging AI & Human Connection",
+  "Building Systems That Scale",
+] as const;
+
+/** Animated number counter */
+function AnimatedCounter({ value, suffix = "" }: { value: string; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const [display, setDisplay] = useState("0");
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    // Extract numeric part
+    const numericMatch = value.match(/[\d.]+/);
+    if (!numericMatch) {
+      setDisplay(value);
+      return;
+    }
+
+    const target = parseFloat(numericMatch[0]);
+    const prefix = value.slice(0, value.indexOf(numericMatch[0]));
+    const postfix = value.slice(value.indexOf(numericMatch[0]) + numericMatch[0].length);
+    const isInt = Number.isInteger(target);
+    const duration = 1200;
+    const start = performance.now();
+
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = target * eased;
+      setDisplay(`${prefix}${isInt ? Math.round(current) : current.toFixed(1)}${postfix}`);
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+  }, [isInView, value]);
+
+  return (
+    <span ref={ref} className="tabular-nums">
+      {display}{suffix}
+    </span>
+  );
+}
+
+/** Core Directive tagline rotator */
+function DirectiveRotator() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % CORE_DIRECTIVES.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="relative h-7 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={index}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -20, opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="text-sm font-mono text-neon-cyan/80 tracking-wider"
+        >
+          &gt; {CORE_DIRECTIVES[index]}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 /** Holographic photo card with floating stats and glitch border */
 function HolographicPhoto() {
   return (
-    <Card padding="p-3" hover className="relative group">
+    <HoloCard padding="p-3" className="relative group">
       {/* HUD brackets */}
       <div className="hud-bracket hud-bracket-tl" />
       <div className="hud-bracket hud-bracket-tr" />
@@ -27,17 +113,33 @@ function HolographicPhoto() {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neon-cyan/5 to-transparent animate-[scanLine_4s_linear_infinite] pointer-events-none" />
         {/* Color overlay on hover */}
         <div className="absolute inset-0 bg-neon-cyan/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        {/* HUD overlay — name + status in bottom corner */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-navy-950/90 via-navy-950/50 to-transparent">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-green opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-green" />
+            </span>
+            <span className="text-[10px] font-mono text-neon-green/80 uppercase tracking-wider">
+              Active Operator
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Name + title */}
       <div className="mt-3 px-1 pb-1">
-        <p className="text-sm font-semibold text-slate-200 font-display">{bio.name}</p>
+        <GlitchText className="text-sm font-semibold text-slate-200 font-display">
+          {bio.name}
+        </GlitchText>
         <p className="text-xs text-neon-cyan/60 font-mono mt-0.5">
           {bio.major} · {bio.university}
         </p>
+        <DirectiveRotator />
       </div>
 
-      {/* Floating stats */}
+      {/* Animated counter stat cards */}
       <div className="grid grid-cols-2 gap-2 mt-3">
         {holoStats.map((stat, i) => (
           <motion.div
@@ -46,14 +148,19 @@ function HolographicPhoto() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 + i * 0.1 }}
-            className="bg-navy-950/80 border border-neon-cyan/15 rounded-lg px-2.5 py-2 text-center"
+            className={cn(
+              "bg-navy-950/80 border border-neon-cyan/15 rounded-lg px-2.5 py-2 text-center",
+              "hover:border-neon-cyan/40 hover:shadow-[0_0_12px_rgba(0,245,255,0.1)] transition-all duration-300",
+            )}
           >
-            <p className="text-sm font-bold text-neon-cyan font-display">{stat.value}</p>
+            <p className="text-sm font-bold text-neon-cyan font-display">
+              <AnimatedCounter value={stat.value} />
+            </p>
             <p className="text-[10px] text-slate-500 font-mono">{stat.label}</p>
           </motion.div>
         ))}
       </div>
-    </Card>
+    </HoloCard>
   );
 }
 
@@ -80,7 +187,7 @@ export function About() {
           <p className="text-slate-400 leading-relaxed">{bio.originStory2}</p>
 
           {/* Operating style card */}
-          <Card padding="p-5">
+          <HoloCard padding="p-5" glowColor="168, 85, 247">
             <p className="text-xs font-mono text-neon-cyan/70 uppercase tracking-widest mb-3">
               Operating Style
             </p>
@@ -99,10 +206,10 @@ export function About() {
                 </motion.li>
               ))}
             </ul>
-          </Card>
+          </HoloCard>
 
           {/* Education badge */}
-          <Card padding="p-5">
+          <HoloCard padding="p-5" glowColor="168, 85, 247">
             <p className="text-xs font-mono text-neon-purple/70 uppercase tracking-widest mb-3">
               Education
             </p>
@@ -121,10 +228,18 @@ export function About() {
                 ))}
               </div>
             </div>
-          </Card>
+          </HoloCard>
 
-          {/* Social links */}
+          {/* Social links + Resume download */}
           <div className="flex flex-wrap gap-3 pt-2">
+            <a
+              href={bio.resumePdf}
+              download
+              className="btn-neon text-xs py-2 px-4 flex items-center gap-1.5"
+              aria-label="Download resume"
+            >
+              <Download size={14} /> Download Resume
+            </a>
             {bio.linkedinUrl && (
               <a
                 href={bio.linkedinUrl}

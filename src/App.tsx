@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
-import { Navbar } from "@/components/sections/Navbar";
+import { useState, useEffect, lazy, Suspense } from "react";
+import { NavigationProvider } from "@/components/hud/NavigationProvider";
+import { TopCommandBar } from "@/components/hud/TopCommandBar";
+import { VerticalTimeline } from "@/components/hud/VerticalTimeline";
 import { Hero } from "@/components/sections/Hero";
 import { About } from "@/components/sections/About";
 import { Timeline } from "@/components/sections/Timeline";
@@ -12,6 +14,9 @@ import { Terminal } from "@/components/ui/Terminal";
 import { NeonCursor } from "@/components/ui/NeonCursor";
 import { Scanline } from "@/components/effects/Scanline";
 import { MatrixRain } from "@/components/effects/MatrixRain";
+// Lazy-load ambient background effects (not critical for initial render)
+const DataStream = lazy(() => import("@/components/effects/DataStream").then((m) => ({ default: m.DataStream })));
+const CircuitGrid = lazy(() => import("@/components/effects/CircuitGrid").then((m) => ({ default: m.CircuitGrid })));
 import { useMousePosition } from "@/hooks/useMousePosition";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -44,62 +49,71 @@ export default function App() {
   }[theme];
 
   return (
-    <div className="min-h-screen bg-navy-950 text-slate-200 relative">
-      {/* Fixed gradient background */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          background: theme === "matrix"
-            ? "linear-gradient(135deg, #0a0f1e 0%, #0a1a10 45%, #0a150a 75%, #0a0f1e 100%)"
-            : theme === "overdrive"
-            ? "linear-gradient(135deg, #0a0f1e 0%, #1a0a2e 45%, #2a0a1e 75%, #0a0f1e 100%)"
-            : "linear-gradient(135deg, #0a0f1e 0%, #0d1942 45%, #1c1240 75%, #0a1838 100%)",
-        }}
-        aria-hidden="true"
-      />
-
-      {/* Cursor-following glow (desktop only) */}
-      {!prefersReduced && (
+    <NavigationProvider>
+      <div className="min-h-screen bg-navy-950 text-slate-200 relative">
+        {/* Fixed gradient background */}
         <div
-          className="fixed inset-0 pointer-events-none z-[2] hidden md:block"
+          className="fixed inset-0 pointer-events-none z-0"
           style={{
-            background: `radial-gradient(600px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`,
+            background: theme === "matrix"
+              ? "linear-gradient(135deg, #0a0f1e 0%, #0a1a10 45%, #0a150a 75%, #0a0f1e 100%)"
+              : theme === "overdrive"
+              ? "linear-gradient(135deg, #0a0f1e 0%, #1a0a2e 45%, #2a0a1e 75%, #0a0f1e 100%)"
+              : "linear-gradient(135deg, #0a0f1e 0%, #0d1942 45%, #1c1240 75%, #0a1838 100%)",
           }}
           aria-hidden="true"
         />
-      )}
 
-      {/* Matrix rain (only in matrix mode) */}
-      {theme === "matrix" && <MatrixRain />}
+        {/* Cursor-following glow (desktop only) */}
+        {!prefersReduced && (
+          <div
+            className="fixed inset-0 pointer-events-none z-[2] hidden md:block"
+            style={{
+              background: `radial-gradient(600px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`,
+            }}
+            aria-hidden="true"
+          />
+        )}
 
-      {/* Scanline overlay */}
-      <Scanline />
+        {/* Matrix rain (only in matrix mode) */}
+        {theme === "matrix" && <MatrixRain />}
 
-      {/* Custom cursor */}
-      <NeonCursor />
+        {/* Ambient background effects (lazy-loaded) */}
+        <Suspense fallback={null}>
+          <CircuitGrid />
+          <DataStream />
+        </Suspense>
 
-      {/* Navigation */}
-      <Navbar
-        theme={theme}
-        onThemeChange={setTheme}
-        onTerminalOpen={() => setTerminalOpen(true)}
-      />
+        {/* Scanline overlay */}
+        <Scanline />
 
-      {/* Interactive terminal */}
-      <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} />
+        {/* Custom cursor */}
+        <NeonCursor />
 
-      {/* Main content */}
-      <main className="relative z-10">
-        <Hero />
-        <About />
-        <Timeline />
-        <Skills />
-        <Projects />
-        <Games />
-        <Contact />
-      </main>
+        {/* ── Operator HUD ──────────────────────────────────────────────── */}
+        <TopCommandBar
+          theme={theme}
+          onThemeChange={setTheme}
+          onTerminalOpen={() => setTerminalOpen(true)}
+        />
+        <VerticalTimeline />
 
-      <Footer />
-    </div>
+        {/* Interactive terminal */}
+        <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} />
+
+        {/* Main content */}
+        <main className="relative z-10">
+          <Hero />
+          <About />
+          <Timeline />
+          <Skills />
+          <Projects />
+          <Games />
+          <Contact />
+        </main>
+
+        <Footer />
+      </div>
+    </NavigationProvider>
   );
 }

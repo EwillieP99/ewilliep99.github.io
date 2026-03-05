@@ -11,6 +11,9 @@ export interface Game {
   tech: string[];
   links: GameLink[];
   highlight: string;
+  // Extended data for full-screen game view
+  controls?: string[];
+  specs?: string[];
 }
 
 export const games: Game[] = [
@@ -25,6 +28,8 @@ export const games: Game[] = [
       { label: "Play", href: "/games/signal-breach/" },
     ],
     highlight: "Live now · wave + accuracy + combo systems",
+    controls: ["Type words to decode signals", "Accuracy builds combo multiplier", "ESC to pause"],
+    specs: ["Wave progression system", "Combo scoring engine", "Integrity decay mechanic", "Cyber-terminal UI"],
   },
   {
     id: "aether-descent",
@@ -37,6 +42,8 @@ export const games: Game[] = [
       { label: "Play", href: "/games/aether-descent/" },
     ],
     highlight: "Live now · 12 planets · upgrades · endless mode",
+    controls: ["Arrow keys / WASD for thrust", "Land gently on platforms", "Collect energy shards"],
+    specs: ["12 unique planets", "Probe upgrade system", "Hazard & weather systems", "Endless survival mode"],
   },
   {
     id: "verdant-siege",
@@ -49,5 +56,7 @@ export const games: Game[] = [
       { label: "Play", href: "/games/verdant-siege/" },
     ],
     highlight: "Live now · 12 maps · 5 towers · boss waves · upgrades",
+    controls: ["Click to place towers", "Select tower type from panel", "Upgrade towers between waves"],
+    specs: ["5 tower types", "12 maps", "6 enemy classes", "Boss battle system", "Upgrade tree"],
   },
 ];

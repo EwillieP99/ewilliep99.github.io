@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Github, Linkedin, Twitter, Mail, Zap } from "lucide-react";
+import { Github, Linkedin, Twitter, Mail, Zap, Download } from "lucide-react";
 import { bio } from "@/data/bio";
 
 export function Footer() {
@@ -24,8 +24,17 @@ export function Footer() {
             <span>{currentYear}</span>
           </div>
 
-          {/* Right: Social links */}
+          {/* Right: Social links + resume */}
           <div className="flex items-center gap-4">
+            <a
+              href={bio.resumePdf}
+              download
+              className="text-slate-500 hover:text-neon-cyan transition-colors"
+              aria-label="Download Resume"
+              title="Download Resume"
+            >
+              <Download size={18} />
+            </a>
             {bio.githubUrl && (
               <a
                 href={bio.githubUrl}
@@ -76,7 +85,7 @@ export function Footer() {
           </span>
           <span className="flex items-center gap-1.5">
             <Zap size={12} className="text-neon-cyan/40" />
-            Powered by React 19 · Three.js · Neon Nexus v2.0
+            Powered by React 19 · Three.js · Uplink Protocol v2.0
           </span>
         </div>
       </div>
