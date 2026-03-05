@@ -44,6 +44,9 @@ export default function EchoAI() {
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
       const data = await response.json();
       const aiReply = data.message || "SIGNAL LOST. TRY AGAIN OPERATOR.";
 
