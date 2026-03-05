@@ -1,5 +1,4 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { motion } from "framer-motion";
 import { NavigationProvider } from "@/components/hud/NavigationProvider";
 import { TopCommandBar } from "@/components/hud/TopCommandBar";
 import { VerticalTimeline } from "@/components/hud/VerticalTimeline";
@@ -15,6 +14,7 @@ import { Terminal } from "@/components/ui/Terminal";
 import { NeonCursor } from "@/components/ui/NeonCursor";
 import { Scanline } from "@/components/effects/Scanline";
 import { MatrixRain } from "@/components/effects/MatrixRain";
+import EchoAI from "@/components/EchoAI";
 import { useMouseGlow } from "@/hooks/useMousePosition";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -120,32 +120,7 @@ export default function App() {
         </main>
 
         <Footer />
-
-        {/* Simple 2D Echo AI Bubble */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{
-            opacity: 1,
-            scale: [1, 1.05, 1],
-            y: [0, -12, 0],
-          }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="fixed bottom-8 right-8 z-50 bg-black/90 backdrop-blur-2xl border border-[#00f3ff] rounded-3xl p-6 shadow-[0_0_45px_-5px] shadow-cyan-400 w-72 cursor-pointer hover:border-cyan-300 transition-all"
-          onClick={() => alert("Echo AI: How can I assist you today, Operator?")}
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-3 h-3 rounded-full bg-cyan-400 animate-ping" />
-            <div className="text-cyan-400 font-mono text-xs tracking-widest">ECHO AI • ONLINE</div>
-          </div>
-          <div className="text-white text-lg font-bold mb-2">Hello, Operator.</div>
-          <p className="text-zinc-400 text-sm">
-            I'm Echo. The guardian of the Neon Nexus.<br />
-            How can I assist you today?
-          </p>
-          <div className="mt-5 text-[10px] font-mono text-cyan-500/70">
-            NEURAL LINK • STABLE • 99.8%
-          </div>
-        </motion.div>
+        <EchoAI />
       </div>
     </NavigationProvider>
   );
