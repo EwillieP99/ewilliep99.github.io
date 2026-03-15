@@ -15,7 +15,9 @@
       "Bash(npm info:*)",
       "Bash(sed:*)",
       "Bash(grep \"\"version\"\":*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(test:*)",
+      "Bash(npx vercel:*)"
     ]
   },
   "spinnerTipsEnabled": false

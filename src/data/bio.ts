@@ -46,7 +46,7 @@ export const bio = {
   linkedinUrl: "https://linkedin.com/in/ethan-pecora",
   githubUrl: "https://github.com/ewilliep99",
   twitterUrl: "https://twitter.com/EwillieP",
-  calendlyUrl: "https://calendly.com/YOUR_HANDLE",
+  calendlyUrl: "https://calendly.com/pecoraethan/30min",
 
   // Assets
   resumePdf: "/resume.pdf",
