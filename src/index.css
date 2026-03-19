@@ -395,6 +395,146 @@
   .hud-bracket-br { bottom: 0; right: 0; border-bottom: 1px solid; border-right: 1px solid; }
 }
 
+/* ── Clean (Light) Theme ───────────────────────────────────────────────── */
+
+[data-theme="clean"] {
+  /* Override custom palette to light equivalents */
+  --color-navy-950: #eef2f7;
+  --color-navy-900: #e5eaf1;
+  --color-navy-800: #d5dce6;
+  --color-navy-700: #c2cdd9;
+
+  --color-neon-cyan: #0891b2;
+  --color-neon-cyan-dim: #0e7490;
+  --color-neon-purple: #7c3aed;
+  --color-neon-purple-dim: #6d28d9;
+  --color-neon-pink: #db2777;
+  --color-neon-blue: #0284c7;
+  --color-neon-green: #16a34a;
+
+  --color-surface: rgba(255, 255, 255, 0.95);
+  --color-surface-card: rgba(255, 255, 255, 0.7);
+  --color-surface-glass: rgba(0, 0, 0, 0.03);
+  --color-border-glass: rgba(0, 0, 0, 0.08);
+  --color-border-subtle: rgba(0, 0, 0, 0.06);
+
+  /* Flip Tailwind's slate scale for dark-on-light text */
+  --color-slate-50: #020617;
+  --color-slate-100: #0f172a;
+  --color-slate-200: #1e293b;
+  --color-slate-300: #334155;
+  --color-slate-400: #475569;
+  --color-slate-500: #64748b;
+  --color-slate-600: #94a3b8;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #e5eaf1;
+  --color-slate-950: #eef2f7;
+
+  /* Override white opacity utilities → black opacity for cards/borders */
+  --color-white: #1e293b;
+}
+
+[data-theme="clean"] body {
+  background-color: #eef2f7;
+  color: #1e293b;
+}
+
+[data-theme="clean"] ::selection {
+  background: rgba(8, 145, 178, 0.2);
+  color: #0f172a;
+}
+
+[data-theme="clean"] ::-webkit-scrollbar-track {
+  background: #e5eaf1;
+}
+[data-theme="clean"] ::-webkit-scrollbar-thumb {
+  background: rgba(8, 145, 178, 0.3);
+}
+[data-theme="clean"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(8, 145, 178, 0.5);
+}
+
+[data-theme="clean"] *:focus-visible {
+  outline-color: #0891b2;
+}
+
+/* Component overrides */
+[data-theme="clean"] .glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+[data-theme="clean"] .glass-card:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="clean"] .holo-card {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="clean"] .terminal-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="clean"] .gradient-text,
+[data-theme="clean"] .gradient-text-static {
+  background: linear-gradient(135deg, #0891b2, #7c3aed);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+[data-theme="clean"] .btn-neon {
+  color: #fff;
+  background: linear-gradient(135deg, #0891b2, #7c3aed);
+  box-shadow: 0 2px 8px rgba(8, 145, 178, 0.2);
+}
+[data-theme="clean"] .btn-neon:hover {
+  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.3);
+}
+
+[data-theme="clean"] .btn-ghost {
+  color: #0891b2;
+  background: rgba(8, 145, 178, 0.06);
+  border-color: rgba(8, 145, 178, 0.2);
+}
+[data-theme="clean"] .btn-ghost:hover {
+  background: rgba(8, 145, 178, 0.1);
+  border-color: rgba(8, 145, 178, 0.4);
+  box-shadow: none;
+}
+
+[data-theme="clean"] .section-label::before {
+  background: linear-gradient(180deg, #0891b2, #7c3aed);
+  box-shadow: none;
+}
+
+[data-theme="clean"] .nav-link:hover,
+[data-theme="clean"] .nav-link.active {
+  color: #0891b2;
+  text-shadow: none;
+}
+
+[data-theme="clean"] .hud-bracket {
+  border-color: rgba(8, 145, 178, 0.3);
+}
+
+[data-theme="clean"] .scanline-overlay {
+  display: none;
+}
+
+/* Remove all neon glows/text-shadows in clean mode */
+[data-theme="clean"] [class*="glow-"],
+[data-theme="clean"] [class*="text-glow-"] {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
 /* ── Reduced Motion ────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {

@@ -38,6 +38,42 @@ export interface Project {
 
 export const projects: Project[] = [
   {
+    id: "resonate",
+    title: "Resonate",
+    description:
+      "A full-stack campus mental wellness ecosystem for UF students. Adaptive AI-generated soundscapes, RPG-style quests grounded in evidence-based psychology, anonymous peer matching via VibeMatch, and journey mapping with PDF export for therapists.",
+    tags: ["Next.js 16", "FastAPI", "Supabase", "MusicGen AI", "React 19"],
+    type: "card",
+    metrics: [
+      { label: "AI Inference Servers", value: "3" },
+      { label: "Quest Levels", value: "15" },
+      { label: "Crisis Detection Tiers", value: "3" },
+      { label: "Target Users", value: "57K+" },
+    ],
+    links: [],
+    featured: true,
+    impact: "Full-stack wellness ecosystem — AI music, RPG quests, peer matching for 57K+ UF students",
+    category: "ai",
+    status: "active",
+    // githubUrl: private repo
+    dossier: {
+      fullDescription:
+        "Resonate reimagines mental wellness for college students through four pillars: adaptive AI-generated soundscapes that respond to emotional state, RPG quests with evidence-based psychological techniques (CBT, ACT, positive psychology), anonymous peer connection (VibeMatch) with automatic crisis safeguards, and journey mapping to track emotional patterns.\n\nArchitecture: Next.js 16 App Router frontend with feature-based modules (features/sonic/, features/quests/, features/vibematch/, features/check-in/). Three parallel FastAPI inference servers — MusicGen text-to-audio on :8000, FLUX.2 Klein text-to-image on :8001, Wan2.1 text-to-video on :8002. Supabase handles PostgreSQL + Realtime + Auth + Storage with 5 migration files.\n\nAI stack includes OpenAI gpt-4o-mini for quest feedback, UF Navigator LLM proxy, Meta MusicGen via local GPU inference, and Anthropic Claude. Safety layer features 3-tier crisis detection: client-side keyword matching for instant UI response, server-side pre-AI screening, and routing to UF Counseling & Wellness Center, 988 Lifeline, or 911.\n\nKey features: magic link auth restricted to @ufl.edu, mood-reactive dashboard with XP system, 3 quest arcs x 5 levels each, Sonic Resonance Engine with 3 music modes (Quick Pick, Interactive Sliders, MusicGen AI), EchoVision audio visualizer with AI-morphing images, real-time VibeMatch peer chat, and Journey Map with PDF export for sharing with therapists. Privacy-first: no ads, no data selling, rate-limited at 10 req/min.",
+      results: [
+        { label: "AI Inference Servers", value: "3 parallel FastAPI" },
+        { label: "Quest Levels", value: "15 (3 arcs x 5)" },
+        { label: "Music Modes", value: "3 (Pick / Sliders / AI)" },
+        { label: "Crisis Detection", value: "3-tier (client → server → emergency)" },
+      ],
+      debrief: [
+        "Feature-based module architecture (features/sonic/, features/quests/) scales better than page-based organization for complex apps.",
+        "Running 3 AI inference servers in parallel required careful port management and health checks — containerization is the next step.",
+        "Crisis detection must be multi-layered: client-side catches obvious keywords instantly, but server-side catches what slips through before it reaches the LLM.",
+        "Evidence-based psychology integrated into product design (not bolted on) makes the difference between a wellness app and a glorified mood tracker.",
+      ],
+    },
+  },
+  {
     id: "life-os",
     title: "Notion Life OS",
     description:
@@ -164,42 +200,3 @@ export const projectCategories = [
   { id: "systems", label: "Systems" },
   { id: "community", label: "Community" },
 ] as const;
-
-// Tactical plays — the "Playbook" section
-export interface Play {
-  id: string;
-  title: string;
-  description: string;
-  tags: string[];
-}
-
-export const plays: Play[] = [
-  {
-    id: "play-career-fair",
-    title: "Career Fair Play",
-    description:
-      "A pre-event research + target list framework for maximizing meaningful conversations per hour at career fairs.",
-    tags: ["Sales", "Prep"],
-  },
-  {
-    id: "play-campus-growth",
-    title: "Campus Growth Play",
-    description:
-      "Cold outreach → event collab → ambassador conversion sequence for growing a campus program from scratch.",
-    tags: ["GTM", "Outreach"],
-  },
-  {
-    id: "play-ai-audit",
-    title: "AI Tool Audit Play",
-    description:
-      "Framework for evaluating and prioritizing AI tool adoption for a student org or small team.",
-    tags: ["AI", "Strategy"],
-  },
-  {
-    id: "play-outreach",
-    title: "Warm Intro Outreach Play",
-    description:
-      "Template + follow-up sequence that converts a mutual connection into a 30-minute informational call.",
-    tags: ["Sales", "Networking"],
-  },
-];

@@ -40,7 +40,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: "NAVIGATOR_API_KEY not configured." });
   }
 
-  const { messages } = req.body as { messages?: ChatMessage[] };
+  const { messages, stream: wantStream } = req.body as {
+    messages?: ChatMessage[];
+    stream?: boolean;
+  };
 
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
     return res.status(400).json({ error: "Invalid messages array (1-50 items)." });
@@ -52,6 +55,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+
   try {
     const response = await fetch("https://api.ai.it.ufl.edu/v1/chat/completions", {
       method: "POST",
@@ -61,10 +67,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({
         model: "llama-3.1-70b-instruct",
-        max_tokens: 300,
+        max_tokens: 500,
+        stream: !!wantStream,
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const text = await response.text();
@@ -76,11 +86,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    // Streaming mode — pipe SSE back to client
+    if (wantStream && response.body) {
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      const reader = (response.body as ReadableStream<Uint8Array>).getReader();
+      const decoder = new TextDecoder();
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          res.write(chunk);
+        }
+      } catch (streamErr) {
+        console.error("Stream read error:", streamErr);
+      }
+
+      return res.end();
+    }
+
+    // Non-streaming fallback
     const data = await response.json();
     const message = data.choices?.[0]?.message?.content ?? "No response from Navigator.";
-
     return res.status(200).json({ message });
   } catch (err) {
+    clearTimeout(timeout);
+    if ((err as Error).name === "AbortError") {
+      return res.status(504).json({ error: "Upstream request timed out." });
+    }
     console.error("Echo handler error:", err);
     return res.status(500).json({ error: "Internal server error." });
   }

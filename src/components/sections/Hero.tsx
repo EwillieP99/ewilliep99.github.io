@@ -82,7 +82,7 @@ export function Hero() {
         </motion.p>
 
         {/* One-liner */}
-        <motion.p variants={item} className="text-xl sm:text-2xl font-light text-slate-300 leading-relaxed mb-3">
+        <motion.p variants={item} className="text-xl sm:text-2xl font-light text-slate-200 leading-relaxed mb-3">
           {bio.heroOneLiner}
         </motion.p>
 
@@ -128,6 +128,30 @@ export function Hero() {
               <span className="text-xs text-slate-500 font-mono mt-1">{stat.label}</span>
             </div>
           ))}
+        </motion.div>
+
+        {/* Currently Building callout */}
+        <motion.div variants={item} className="mt-8 max-w-md mx-auto">
+          <button
+            onClick={() => document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })}
+            className="group w-full rounded-lg border border-neon-green/20 bg-white/[0.03] backdrop-blur-sm px-5 py-3.5 text-left hover:border-neon-green/40 hover:shadow-[0_0_20px_rgba(34,197,94,0.1)] transition-all"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-green opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-green" />
+              </span>
+              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-neon-green">
+                Currently Building
+              </span>
+            </div>
+            <div className="font-display text-base text-neon-cyan">
+              <span className="text-neon-purple/60">[</span> Resonate <span className="text-neon-purple/60">]</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">
+              AI-powered mental wellness for UF — adaptive soundscapes, RPG quests, peer matching.
+            </p>
+          </button>
         </motion.div>
       </motion.div>
 

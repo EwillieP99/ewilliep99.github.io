@@ -45,11 +45,11 @@ export function TopCommandBar({ theme, onThemeChange, onTerminalOpen }: TopComma
   const themeIcons: Record<ThemeMode, { icon: typeof Zap; label: string }> = {
     neon: { icon: Zap, label: "Neon" },
     matrix: { icon: Leaf, label: "Matrix" },
-    overdrive: { icon: Sun, label: "Overdrive" },
+    clean: { icon: Sun, label: "Clean" },
   };
 
   const cycleTheme = () => {
-    const order: ThemeMode[] = ["neon", "matrix", "overdrive"];
+    const order: ThemeMode[] = ["neon", "matrix", "clean"];
     const next = order[(order.indexOf(theme) + 1) % order.length];
     onThemeChange(next);
   };

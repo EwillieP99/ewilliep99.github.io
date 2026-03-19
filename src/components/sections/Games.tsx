@@ -103,7 +103,7 @@ function CRTGameCard({
             </span>
           </div>
 
-          <p className="text-sm text-slate-400 leading-relaxed mb-4">{game.description}</p>
+          <p className="text-sm text-slate-300 leading-relaxed mb-4">{game.description}</p>
 
           {/* Highlight */}
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-4 rounded-full bg-neon-purple/8 border border-neon-purple/20 text-[11px] font-mono text-neon-purple/80">
@@ -169,7 +169,7 @@ export function Games() {
           />
         </AnimatedSection>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 gap-5 max-w-3xl mx-auto">
           {games.map((game, index) => (
             <CRTGameCard
               key={game.id}

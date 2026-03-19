@@ -1,25 +1,24 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { Monitor, Brain, Cloud, TrendingUp, Wrench, X } from "lucide-react";
+import { Monitor, Brain, TrendingUp, Users, Megaphone, X } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { HoloCard } from "@/components/ui/HoloCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { skillGroups, type SkillGroup, type Skill } from "@/data/skills";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
-import { cn } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// AUGMENTATIONS — Skill matrix with neural link hover + detail modals
+// AUGMENTATIONS — Skill groups with horizontal bar charts + detail modals
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Map icon names to Lucide components
 const iconMap: Record<string, typeof Monitor> = {
   Monitor,
   Brain,
-  Cloud,
   TrendingUp,
-  Wrench,
+  Users,
+  Megaphone,
 };
 
 /** Skill detail modal */
@@ -148,8 +147,8 @@ function SkillDetailModal({
   );
 }
 
-/** Neon progress ring for a single skill with neural link hover */
-function SkillRing({
+/** A single skill row with animated horizontal bar */
+function SkillBar({
   skill,
   color,
   delay,
@@ -161,108 +160,54 @@ function SkillRing({
   onClick: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-40px" });
+  const isInView = useInView(ref, { once: true, margin: "-20px" });
   const prefersReduced = useReducedMotion();
-  const [hovered, setHovered] = useState(false);
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      className="relative group cursor-pointer"
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
+      className="group flex items-center gap-3 py-1.5 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-white/[0.03] transition-colors"
       onClick={onClick}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={prefersReduced ? { duration: 0 } : { duration: 0.5, delay }}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter") onClick(); }}
       aria-label={`${skill.label}: ${skill.proficiency}% — ${skill.usedIn}`}
     >
-      {/* Neural link line — draws from ring to tooltip on hover */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            className="absolute top-1/2 left-1/2 pointer-events-none z-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <svg
-              className="absolute -top-8 -left-2"
-              width="4"
-              height="16"
-              viewBox="0 0 4 16"
-              aria-hidden
-            >
-              <motion.line
-                x1="2" y1="16" x2="2" y2="0"
-                stroke={color}
-                strokeWidth="1"
-                strokeOpacity="0.5"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 0.25 }}
-              />
-            </svg>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Skill name */}
+      <span className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors w-[140px] sm:w-[160px] shrink-0 truncate">
+        {skill.label}
+      </span>
 
-      {/* Ring */}
-      <div
-        className={cn(
-          "w-20 h-20 rounded-full p-[3px] mx-auto transition-all duration-300",
-          hovered && "scale-110",
-        )}
-        style={{
-          background: isInView
-            ? `conic-gradient(${color} ${skill.proficiency}%, rgba(255,255,255,0.06) 0%)`
-            : "rgba(255,255,255,0.06)",
-          boxShadow: hovered ? `0 0 25px ${color}50, 0 0 50px ${color}15` : "none",
-        }}
-      >
-        <div className="w-full h-full rounded-full bg-navy-950 flex items-center justify-center">
-          <span className="text-xs font-bold font-mono" style={{ color }}>
-            {skill.proficiency}%
-          </span>
-        </div>
+      {/* Bar */}
+      <div className="flex-1 h-[6px] rounded-full bg-white/[0.06] overflow-hidden">
+        <motion.div
+          className="h-full rounded-full"
+          style={{
+            background: color,
+            boxShadow: `0 0 8px ${color}30`,
+          }}
+          initial={{ width: 0 }}
+          animate={isInView ? { width: `${skill.proficiency}%` } : { width: 0 }}
+          transition={
+            prefersReduced
+              ? { duration: 0 }
+              : { duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }
+          }
+        />
       </div>
 
-      {/* Label */}
-      <p className={cn(
-        "text-xs text-center mt-2 font-medium transition-colors duration-200",
-        hovered ? "text-slate-100" : "text-slate-300",
-      )}>
-        {skill.label}
-      </p>
-
-      {/* "Used in" tooltip */}
-      <AnimatePresence>
-        {hovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 5 }}
-            className="absolute -bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap z-10 px-2.5 py-1 rounded-md bg-navy-900/95 border text-[10px] font-mono"
-            style={{
-              borderColor: `${color}30`,
-              color: `${color}cc`,
-              boxShadow: `0 0 10px ${color}10`,
-            }}
-          >
-            {skill.usedIn}
-            <span className="block text-[8px] text-slate-600 mt-0.5">Click for details</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+      {/* Percentage */}
+      <span
+        className="text-xs font-mono shrink-0 w-9 text-right"
+        style={{ color }}
+      >
+        {skill.proficiency}%
+      </span>
+    </div>
   );
 }
 
-/** One skill category group */
+/** One skill category group card with bar chart */
 function SkillGroupCard({
   group,
   index,
@@ -278,7 +223,7 @@ function SkillGroupCard({
     <AnimatedSection delay={index * 0.1}>
       <HoloCard padding="p-6" className="h-full" glowColor={hexToRgb(group.color)}>
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex items-center gap-3 mb-5">
           <div
             className="p-2 rounded-lg"
             style={{ background: `${group.color}15`, border: `1px solid ${group.color}30` }}
@@ -291,14 +236,14 @@ function SkillGroupCard({
           </span>
         </div>
 
-        {/* Skill rings grid */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* Skill bars */}
+        <div className="flex flex-col gap-0.5">
           {group.skills.map((skill, i) => (
-            <SkillRing
+            <SkillBar
               key={skill.label}
               skill={skill}
               color={group.color}
-              delay={i * 0.08}
+              delay={i * 0.06}
               onClick={() => onSkillClick(skill, group.color)}
             />
           ))}
@@ -326,11 +271,11 @@ export function Skills() {
           <SectionHeader
             codename="// 03"
             label="Augmentations"
-            sub="25+ skills across 5 domains — click any skill for details"
+            sub="33 skills across 5 domains — click any skill for details"
           />
         </AnimatedSection>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid md:grid-cols-2 gap-5">
           {skillGroups.map((group, i) => (
             <SkillGroupCard
               key={group.id}
@@ -340,22 +285,6 @@ export function Skills() {
             />
           ))}
         </div>
-
-        {/* Legend */}
-        <AnimatedSection delay={0.3} className="mt-8 flex flex-wrap gap-6 justify-center">
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-            <span className="w-3 h-3 rounded-full bg-neon-cyan" />
-            90%+ Core
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-            <span className="w-3 h-3 rounded-full bg-neon-purple" />
-            70-89% Proficient
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
-            <span className="w-3 h-3 rounded-full bg-slate-500" />
-            &lt;70% Familiar
-          </div>
-        </AnimatedSection>
       </section>
 
       {/* Skill Detail Modal */}

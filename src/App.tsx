@@ -14,7 +14,7 @@ import { Terminal } from "@/components/ui/Terminal";
 import { NeonCursor } from "@/components/ui/NeonCursor";
 import { Scanline } from "@/components/effects/Scanline";
 import { MatrixRain } from "@/components/effects/MatrixRain";
-import EchoAI from "@/components/EchoAI";
+import EchoAI from "@/components/echo/EchoAI";
 import { useMouseGlow } from "@/hooks/useMousePosition";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
@@ -22,8 +22,8 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 const DataStream = lazy(() => import("@/components/effects/DataStream").then((m) => ({ default: m.DataStream })));
 const CircuitGrid = lazy(() => import("@/components/effects/CircuitGrid").then((m) => ({ default: m.CircuitGrid })));
 
-// Theme modes: neon (default), matrix (green), overdrive (max glow)
-export type ThemeMode = "neon" | "matrix" | "overdrive";
+// Theme modes: neon (default), matrix (green), clean (light minimalist)
+export type ThemeMode = "neon" | "matrix" | "clean";
 
 export default function App() {
   const [theme, setTheme] = useState<ThemeMode>("neon");
@@ -46,13 +46,15 @@ export default function App() {
   const glowColor = {
     neon: "rgba(0,245,255,0.08)",
     matrix: "rgba(34,197,94,0.08)",
-    overdrive: "rgba(244,114,182,0.12)",
+    clean: "rgba(56,189,248,0.06)",
   }[theme];
   const glowRef = useMouseGlow(glowColor);
 
+  const isClean = theme === "clean";
+
   return (
     <NavigationProvider>
-      <div className="min-h-screen bg-navy-950 text-slate-200 relative">
+      <div className="min-h-screen bg-navy-950 text-slate-200 relative" data-theme={theme}>
         {/* Skip to content — visible only on keyboard focus */}
         <a
           href="#about"
@@ -64,10 +66,10 @@ export default function App() {
         <div
           className="fixed inset-0 pointer-events-none z-0"
           style={{
-            background: theme === "matrix"
+            background: isClean
+              ? "linear-gradient(135deg, #eef2f7 0%, #e5eaf1 45%, #dce4ef 75%, #eef2f7 100%)"
+              : theme === "matrix"
               ? "linear-gradient(135deg, #0a0f1e 0%, #0a1a10 45%, #0a150a 75%, #0a0f1e 100%)"
-              : theme === "overdrive"
-              ? "linear-gradient(135deg, #0a0f1e 0%, #1a0a2e 45%, #2a0a1e 75%, #0a0f1e 100%)"
               : "linear-gradient(135deg, #0a0f1e 0%, #0d1942 45%, #1c1240 75%, #0a1838 100%)",
           }}
           aria-hidden="true"
@@ -85,14 +87,16 @@ export default function App() {
         {/* Matrix rain (only in matrix mode) */}
         {theme === "matrix" && <MatrixRain />}
 
-        {/* Ambient background effects (lazy-loaded) */}
-        <Suspense fallback={null}>
-          <CircuitGrid />
-          <DataStream />
-        </Suspense>
+        {/* Ambient background effects (lazy-loaded, hidden in clean mode) */}
+        {!isClean && (
+          <Suspense fallback={null}>
+            <CircuitGrid />
+            <DataStream />
+          </Suspense>
+        )}
 
         {/* Scanline overlay */}
-        <Scanline />
+        {!isClean && <Scanline />}
 
         {/* Custom cursor */}
         <NeonCursor />

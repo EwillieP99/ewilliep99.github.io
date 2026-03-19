@@ -183,8 +183,19 @@ export function About() {
 
         {/* Story + traits */}
         <AnimatedSection className="md:col-span-3 flex flex-col gap-6" delay={0.1}>
-          <p className="text-slate-300 leading-relaxed text-lg">{bio.originStory}</p>
-          <p className="text-slate-400 leading-relaxed">{bio.originStory2}</p>
+          <p className="text-slate-300 leading-relaxed text-lg font-light">{bio.originStory}</p>
+          <div className="text-slate-400 leading-relaxed space-y-3">
+            <p>
+              I sell, I build systems, and I get things across the finish line.
+            </p>
+            <p>
+              That's not a tagline — it's what the numbers show.{" "}
+              <span className="text-neon-cyan font-semibold">$110K in ARR</span> as a sales development intern at Geotarget.{" "}
+              <span className="text-neon-cyan font-semibold">400+ new users</span> at Perplexity AI with a{" "}
+              <span className="text-neon-cyan font-semibold">67% conversion rate</span> across 15 workshops. A{" "}
+              <span className="text-neon-cyan font-semibold">500+ attendee</span> AI mixer that brought together 8 student orgs, 12 campus partners, and 5 industry sponsors.
+            </p>
+          </div>
 
           {/* Operating style card */}
           <HoloCard padding="p-5" glowColor="168, 85, 247">
@@ -201,7 +212,7 @@ export function About() {
                   transition={{ delay: 0.2 + i * 0.1 }}
                   className="flex items-start gap-2 text-sm text-slate-300"
                 >
-                  <span className="text-neon-cyan mt-0.5 flex-shrink-0">&gt;</span>
+                  <span className="text-neon-cyan mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-neon-cyan inline-block" />
                   {trait}
                 </motion.li>
               ))}

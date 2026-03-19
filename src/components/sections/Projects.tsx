@@ -13,7 +13,7 @@ import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { HoloCard } from "@/components/ui/HoloCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
-import { projects, projectCategories, plays, type Project } from "@/data/projects";
+import { projects, projectCategories, type Project } from "@/data/projects";
 
 const MissionDossierModal = lazy(() =>
   import("@/components/modals/MissionDossierModal").then((m) => ({ default: m.MissionDossierModal }))
@@ -135,12 +135,12 @@ function ArchiveCard({
         )}
 
         {/* Description */}
-        <p className="text-sm text-slate-400 leading-relaxed mb-3 line-clamp-4 flex-1">
+        <p className="text-sm text-slate-300 leading-relaxed mb-3 line-clamp-4 flex-1">
           {project.description}
         </p>
 
         {/* Impact */}
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-3 rounded-full bg-neon-purple/8 border border-neon-purple/20 text-[11px] font-mono text-neon-purple/80 self-start">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-3 rounded-full bg-neon-purple/8 border border-neon-purple/20 text-[11px] font-mono text-neon-purple font-semibold self-start">
           {project.impact}
         </div>
 
@@ -282,78 +282,6 @@ function MissionCarousel({
   );
 }
 
-/** Playbook accordion section */
-function PlaybookSection() {
-  const [open, setOpen] = useState<string | null>(null);
-
-  return (
-    <div className="mt-16">
-      <AnimatedSection>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-px h-6 bg-gradient-to-b from-neon-purple to-transparent" />
-          <h3 className="text-lg font-semibold text-slate-200 font-display">Playbook</h3>
-          <span className="text-xs text-slate-500 font-mono">— tactical repeatable motions</span>
-        </div>
-      </AnimatedSection>
-
-      <div className="flex flex-col gap-2">
-        {plays.map((play, i) => (
-          <AnimatedSection key={play.id} delay={i * 0.05}>
-            <div
-              className="glass-card overflow-hidden cursor-pointer hover:border-neon-purple/30 transition-all"
-              onClick={() => setOpen(open === play.id ? null : play.id)}
-              role="button"
-              aria-expanded={open === play.id}
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setOpen(open === play.id ? null : play.id);
-                }
-              }}
-            >
-              <div className="flex items-center justify-between px-5 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-neon-purple text-xs font-mono">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="font-medium text-slate-200 text-sm">{play.title}</span>
-                </div>
-                <motion.span
-                  animate={{ rotate: open === play.id ? 45 : 0 }}
-                  className="text-neon-cyan text-lg leading-none"
-                >
-                  +
-                </motion.span>
-              </div>
-              <AnimatePresence>
-                {open === play.id && (
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: "auto" }}
-                    exit={{ height: 0 }}
-                    transition={{ duration: 0.25 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-5 pb-4 pt-0 border-t border-neon-cyan/10">
-                      <p className="text-sm text-slate-400 mt-3 leading-relaxed">{play.description}</p>
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {play.tags.map((tag) => (
-                          <Tag key={tag} label={tag} color="purple" />
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </AnimatedSection>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function Projects() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -410,7 +338,6 @@ export function Projects() {
           </p>
         </AnimatedSection>
 
-        <PlaybookSection />
       </section>
 
       {/* Dossier Modal (lazy-loaded) */}

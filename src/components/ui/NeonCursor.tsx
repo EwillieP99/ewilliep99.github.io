@@ -4,6 +4,7 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 // ===============================================================================
 // NEON CURSOR — GPU-accelerated custom cursor with RAF + lerp
 // Modes: default (crosshair), "select" (interactive elements), "hack" (cards)
+// Theme-aware: adapts colors for dark and light themes
 // Uses refs + translate3d instead of React state to avoid re-renders
 // ===============================================================================
 
@@ -11,6 +12,35 @@ type CursorMode = "default" | "select" | "hack";
 
 const LERP_RING = 0.15;
 const LERP_DOT = 0.25;
+
+// Color palettes per theme context
+const COLORS = {
+  dark: {
+    primary: "0, 245, 255",     // neon cyan
+    hack: "168, 85, 247",       // purple
+    dotBg: "#00f5ff",
+    hackDotBg: "#a855f7",
+  },
+  light: {
+    primary: "8, 145, 178",     // darker teal for visibility
+    hack: "124, 58, 237",       // deeper purple
+    dotBg: "#0891b2",
+    hackDotBg: "#7c3aed",
+  },
+  matrix: {
+    primary: "34, 197, 94",     // green
+    hack: "168, 85, 247",       // purple
+    dotBg: "#22c55e",
+    hackDotBg: "#a855f7",
+  },
+};
+
+function getTheme(): "dark" | "light" | "matrix" {
+  const attr = document.querySelector("[data-theme]")?.getAttribute("data-theme");
+  if (attr === "clean") return "light";
+  if (attr === "matrix") return "matrix";
+  return "dark";
+}
 
 export function NeonCursor() {
   const prefersReduced = useReducedMotion();
@@ -26,7 +56,7 @@ export function NeonCursor() {
   const rafId = useRef<number>(0);
   const mode = useRef<CursorMode>("default");
   const clicking = useRef(false);
-  const mounted = useRef(false);
+  const currentTheme = useRef<"dark" | "light" | "matrix">("dark");
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -38,36 +68,51 @@ export function NeonCursor() {
     const ringOffset = ringSize / 2;
     const scale = clicking.current ? 0.85 : 1;
 
+    const t = currentTheme.current;
+    const c = COLORS[t];
+    const col = isHack ? c.hack : c.primary;
+
+    // In light mode, use higher opacities for visibility
+    const isLight = t === "light";
+    const ringBorderAlpha = isSelect || isHack ? 0.5 : isLight ? 0.35 : 0.2;
+    const ringFillAlpha = isSelect ? 0.12 : isHack ? 0.1 : isLight ? 0.08 : 0.06;
+    const dotShadowAlpha = isLight ? 0.6 : 0.8;
+
     if (ringRef.current) {
       ringRef.current.style.transform = `translate3d(${ringPos.current.x - ringOffset}px, ${ringPos.current.y - ringOffset}px, 0) scale(${scale})`;
       ringRef.current.style.width = `${ringSize}px`;
       ringRef.current.style.height = `${ringSize}px`;
-      ringRef.current.style.borderColor = `rgba(${isHack ? "168, 85, 247" : "0, 245, 255"}, ${isSelect || isHack ? 0.5 : 0.2})`;
-      ringRef.current.style.background = `radial-gradient(circle, rgba(${isHack ? "168, 85, 247" : "0, 245, 255"}, ${isSelect ? 0.12 : isHack ? 0.1 : 0.06}), transparent 70%)`;
+      ringRef.current.style.borderColor = `rgba(${col}, ${ringBorderAlpha})`;
+      ringRef.current.style.background = `radial-gradient(circle, rgba(${col}, ${ringFillAlpha}), transparent 70%)`;
+      ringRef.current.style.mixBlendMode = isLight ? "normal" : "screen";
     }
 
     const dotScale = clicking.current ? 0.6 : 1;
+    const dotBg = isHack ? c.hackDotBg : c.dotBg;
     if (dotRef.current) {
       dotRef.current.style.transform = `translate3d(${dotPos.current.x - 2}px, ${dotPos.current.y - 2}px, 0) scale(${dotScale})`;
-      dotRef.current.style.background = isHack ? "#a855f7" : "#00f5ff";
-      dotRef.current.style.boxShadow = `0 0 8px ${isHack ? "rgba(168,85,247,0.8)" : "rgba(0,245,255,0.8)"}`;
+      dotRef.current.style.background = dotBg;
+      dotRef.current.style.boxShadow = `0 0 8px rgba(${col}, ${dotShadowAlpha})`;
     }
 
+    const crossAlpha = isLight ? 0.5 : 0.4;
     if (crossHRef.current) {
       crossHRef.current.style.transform = `translate3d(${dotPos.current.x - 8}px, ${dotPos.current.y - 0.5}px, 0)`;
       crossHRef.current.style.opacity = m === "default" ? "1" : "0";
+      crossHRef.current.style.background = `linear-gradient(90deg, transparent, rgba(${c.primary}, ${crossAlpha}), transparent)`;
     }
     if (crossVRef.current) {
       crossVRef.current.style.transform = `translate3d(${dotPos.current.x - 0.5}px, ${dotPos.current.y - 8}px, 0)`;
       crossVRef.current.style.opacity = m === "default" ? "1" : "0";
+      crossVRef.current.style.background = `linear-gradient(180deg, transparent, rgba(${c.primary}, ${crossAlpha}), transparent)`;
     }
 
     if (labelRef.current) {
       const ringOffset2 = ringSize / 2;
       labelRef.current.style.transform = `translate3d(${ringPos.current.x + ringOffset2 + 4}px, ${ringPos.current.y - 4}px, 0)`;
       labelRef.current.style.opacity = isSelect || isHack ? "0.6" : "0";
-      labelRef.current.style.color = isHack ? "#a855f7" : "#00f5ff";
-      labelRef.current.style.textShadow = `0 0 4px ${isHack ? "rgba(168,85,247,0.5)" : "rgba(0,245,255,0.5)"}`;
+      labelRef.current.style.color = dotBg;
+      labelRef.current.style.textShadow = `0 0 4px rgba(${col}, 0.5)`;
       labelRef.current.textContent = isHack ? "HACK" : "SELECT";
     }
   }, []);
@@ -88,7 +133,16 @@ export function NeonCursor() {
     const hasPointer = window.matchMedia("(pointer: fine)").matches;
     if (!hasPointer) return;
 
-    mounted.current = true;
+    // Track theme changes
+    currentTheme.current = getTheme();
+    const themeObserver = new MutationObserver(() => {
+      currentTheme.current = getTheme();
+    });
+    themeObserver.observe(document.body.parentElement!, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ["data-theme"],
+    });
 
     // Hide default cursor globally
     document.documentElement.style.cursor = "none";
@@ -137,11 +191,11 @@ export function NeonCursor() {
     rafId.current = requestAnimationFrame(animate);
 
     return () => {
-      mounted.current = false;
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mousedown", handleDown);
       window.removeEventListener("mouseup", handleUp);
       observer.disconnect();
+      themeObserver.disconnect();
       cancelAnimationFrame(rafId.current);
       document.documentElement.style.cursor = "";
     };
@@ -154,7 +208,7 @@ export function NeonCursor() {
       {/* Outer ring */}
       <div
         ref={ringRef}
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9998] mix-blend-screen"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9998]"
         style={{ willChange: "transform", border: "1px solid rgba(0,245,255,0.2)" }}
       />
 

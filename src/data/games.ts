@@ -45,18 +45,4 @@ export const games: Game[] = [
     controls: ["Arrow keys / WASD for thrust", "Land gently on platforms", "Collect energy shards"],
     specs: ["12 unique planets", "Probe upgrade system", "Hazard & weather systems", "Endless survival mode"],
   },
-  {
-    id: "verdant-siege",
-    title: "Verdant Siege",
-    description:
-      "Wave tower defense with 5 tower types, 12 maps, 6 enemy classes, upgrade tree, and boss battles. Defend the Ancient Tree from the Blight.",
-    status: "live",
-    tech: ["Phaser 3", "Arcade Physics", "Procedural Gen"],
-    links: [
-      { label: "Play", href: "/games/verdant-siege/" },
-    ],
-    highlight: "Live now · 12 maps · 5 towers · boss waves · upgrades",
-    controls: ["Click to place towers", "Select tower type from panel", "Upgrade towers between waves"],
-    specs: ["5 tower types", "12 maps", "6 enemy classes", "Boss battle system", "Upgrade tree"],
-  },
 ];
