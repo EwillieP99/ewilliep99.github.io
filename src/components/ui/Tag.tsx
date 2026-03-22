@@ -17,7 +17,7 @@ export function Tag({ label, color = "default" }: TagProps) {
   return (
     <span
       className={cn(
-        "inline-block px-2.5 py-0.5 text-xs font-medium rounded-full border",
+        "inline-block px-2.5 py-0.5 text-[11px] font-mono font-medium leading-tight rounded-full border",
         "transition-transform hover:-translate-y-0.5",
         colorClasses[color],
       )}

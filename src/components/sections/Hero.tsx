@@ -1,5 +1,5 @@
-import { lazy, Suspense } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { lazy, Suspense, useRef } from "react";
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from "framer-motion";
 import { ChevronDown, Download, Calendar } from "lucide-react";
 import { bio } from "@/data/bio";
 import { Button } from "@/components/ui/Button";
@@ -19,12 +19,33 @@ const item = fadeUpItem;
 
 export function Hero() {
   const prefersReduced = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
+  const heroScrollProgressRef = useRef(0);
+
   const { scrollY } = useScroll();
-  const heroOpacity = useTransform(scrollY, [0, 600], [1, 0]);
-  const heroY = useTransform(scrollY, [0, 600], [0, 150]);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    heroScrollProgressRef.current = v;
+  });
+
+  const smoothScrollY = useSpring(scrollY, {
+    stiffness: 120,
+    damping: 34,
+    mass: 0.28,
+    restDelta: 0.5,
+  });
+  const scrollForParallax = prefersReduced ? scrollY : smoothScrollY;
+  const heroOpacity = useTransform(scrollForParallax, [0, 600], [1, 0]);
+  const heroY = useTransform(scrollForParallax, [0, 600], [0, 150]);
 
   return (
     <section
+      ref={sectionRef}
+      id="home"
       className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-20 overflow-hidden"
       aria-label="Hero section"
     >
@@ -32,7 +53,7 @@ export function Hero() {
       <div className="hidden lg:block">
         <ErrorBoundary fallback={<ParticleField count={60} />}>
           <Suspense fallback={null}>
-            <HeroScene />
+            <HeroScene scrollProgressRef={heroScrollProgressRef} />
           </Suspense>
         </ErrorBoundary>
       </div>
@@ -52,18 +73,17 @@ export function Hero() {
         aria-hidden="true"
       />
 
-      {/* Hero content — parallax on scroll */}
+      {/* Hero primary column — stays readable on scroll (no fade) */}
       <motion.div
         className="relative z-10 max-w-3xl"
         variants={container}
         initial="hidden"
         animate="visible"
-        style={prefersReduced ? {} : { opacity: heroOpacity, y: heroY }}
       >
         {/* Eyebrow */}
         <motion.div variants={item} className="mb-4">
           <span className="text-xs font-mono font-medium tracking-[0.2em] uppercase text-neon-cyan/60">
-            {bio.university} · {bio.major} · {bio.location}
+            {bio.education.university} · {bio.major} · {bio.location}
           </span>
         </motion.div>
 
@@ -87,7 +107,7 @@ export function Hero() {
         </motion.p>
 
         {/* Sub-line */}
-        <motion.p variants={item} className="text-sm text-slate-500 mb-10">
+        <motion.p variants={item} className="text-sm text-slate-500 mb-6">
           {bio.heroSub}
         </motion.p>
 
@@ -109,49 +129,27 @@ export function Hero() {
             Book Time
           </Button>
         </motion.div>
+      </motion.div>
 
-        {/* Impact stats ticker */}
+      {/* Stats row — subtle parallax only */}
+      <motion.div
+        className="relative z-10 max-w-3xl w-full mx-auto"
+        style={prefersReduced ? {} : { opacity: heroOpacity, y: heroY }}
+      >
         <motion.div
-          variants={item}
-          className="mt-12 flex flex-wrap items-center justify-center gap-8 text-center"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
+          className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-4 text-center"
         >
-          {[
-            { value: "$110K", label: "ARR Generated" },
-            { value: "400+", label: "Users Driven" },
-            { value: "67%", label: "Conversion Rate" },
-            { value: "500+", label: "Attendees" },
-          ].map((stat) => (
-            <div key={stat.label} className="flex flex-col">
-              <span className="text-2xl sm:text-3xl font-bold text-neon-cyan text-glow-cyan font-display">
+          {bio.achievements.map((stat) => (
+            <div key={stat.label} className="flex flex-col min-w-[100px]">
+              <span className="text-xl sm:text-2xl font-bold text-neon-cyan text-glow-cyan font-display tabular-nums">
                 {stat.value}
               </span>
-              <span className="text-xs text-slate-500 font-mono mt-1">{stat.label}</span>
+              <span className="text-[10px] sm:text-xs text-slate-500 font-mono mt-0.5">{stat.label}</span>
             </div>
           ))}
-        </motion.div>
-
-        {/* Currently Building callout */}
-        <motion.div variants={item} className="mt-8 max-w-md mx-auto">
-          <button
-            onClick={() => document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" })}
-            className="group w-full rounded-lg border border-neon-green/20 bg-white/[0.03] backdrop-blur-sm px-5 py-3.5 text-left hover:border-neon-green/40 hover:shadow-[0_0_20px_rgba(34,197,94,0.1)] transition-all"
-          >
-            <div className="flex items-center gap-2 mb-1">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-green opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-neon-green" />
-              </span>
-              <span className="font-mono text-[10px] tracking-[0.2em] uppercase text-neon-green">
-                Currently Building
-              </span>
-            </div>
-            <div className="font-display text-base text-neon-cyan">
-              <span className="text-neon-purple/60">[</span> Resonate <span className="text-neon-purple/60">]</span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              AI-powered mental wellness for UF — adaptive soundscapes, RPG quests, peer matching.
-            </p>
-          </button>
         </motion.div>
       </motion.div>
 

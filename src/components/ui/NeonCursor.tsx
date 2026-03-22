@@ -10,8 +10,8 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 type CursorMode = "default" | "select" | "hack";
 
-const LERP_RING = 0.15;
-const LERP_DOT = 0.25;
+const LERP_RING = 0.24;
+const LERP_DOT = 0.38;
 
 // Color palettes per theme context
 const COLORS = {
@@ -33,12 +33,28 @@ const COLORS = {
     dotBg: "#22c55e",
     hackDotBg: "#a855f7",
   },
+  ember: {
+    primary: "251, 146, 60",    // amber
+    hack: "244, 114, 182",      // pink
+    dotBg: "#fb923c",
+    hackDotBg: "#f472b6",
+  },
+  gator: {
+    primary: "250, 70, 22",     // UF orange #FA4616
+    hack: "0, 33, 165",         // UF blue #0021A5
+    dotBg: "#FA4616",
+    hackDotBg: "#0021A5",
+  },
 };
 
-function getTheme(): "dark" | "light" | "matrix" {
+type CursorPalette = keyof typeof COLORS;
+
+function getTheme(): CursorPalette {
   const attr = document.querySelector("[data-theme]")?.getAttribute("data-theme");
   if (attr === "clean") return "light";
+  if (attr === "gator") return "gator";
   if (attr === "matrix") return "matrix";
+  if (attr === "ember") return "ember";
   return "dark";
 }
 
@@ -56,11 +72,21 @@ export function NeonCursor() {
   const rafId = useRef<number>(0);
   const mode = useRef<CursorMode>("default");
   const clicking = useRef(false);
-  const currentTheme = useRef<"dark" | "light" | "matrix">("dark");
+  const currentTheme = useRef<CursorPalette>("dark");
+  const hideCursor = useRef(false);
 
   const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
   const updateStyles = useCallback(() => {
+    if (hideCursor.current) {
+      if (ringRef.current) ringRef.current.style.opacity = "0";
+      if (dotRef.current) dotRef.current.style.opacity = "0";
+      if (crossHRef.current) crossHRef.current.style.opacity = "0";
+      if (crossVRef.current) crossVRef.current.style.opacity = "0";
+      if (labelRef.current) labelRef.current.style.opacity = "0";
+      return;
+    }
+
     const m = mode.current;
     const isSelect = m === "select";
     const isHack = m === "hack";
@@ -73,12 +99,13 @@ export function NeonCursor() {
     const col = isHack ? c.hack : c.primary;
 
     // In light mode, use higher opacities for visibility
-    const isLight = t === "light";
+    const isLight = t === "light" || t === "gator";
     const ringBorderAlpha = isSelect || isHack ? 0.5 : isLight ? 0.35 : 0.2;
     const ringFillAlpha = isSelect ? 0.12 : isHack ? 0.1 : isLight ? 0.08 : 0.06;
     const dotShadowAlpha = isLight ? 0.6 : 0.8;
 
     if (ringRef.current) {
+      ringRef.current.style.opacity = "1";
       ringRef.current.style.transform = `translate3d(${ringPos.current.x - ringOffset}px, ${ringPos.current.y - ringOffset}px, 0) scale(${scale})`;
       ringRef.current.style.width = `${ringSize}px`;
       ringRef.current.style.height = `${ringSize}px`;
@@ -90,6 +117,7 @@ export function NeonCursor() {
     const dotScale = clicking.current ? 0.6 : 1;
     const dotBg = isHack ? c.hackDotBg : c.dotBg;
     if (dotRef.current) {
+      dotRef.current.style.opacity = "1";
       dotRef.current.style.transform = `translate3d(${dotPos.current.x - 2}px, ${dotPos.current.y - 2}px, 0) scale(${dotScale})`;
       dotRef.current.style.background = dotBg;
       dotRef.current.style.boxShadow = `0 0 8px rgba(${col}, ${dotShadowAlpha})`;
@@ -138,9 +166,8 @@ export function NeonCursor() {
     const themeObserver = new MutationObserver(() => {
       currentTheme.current = getTheme();
     });
-    themeObserver.observe(document.body.parentElement!, {
+    themeObserver.observe(document.documentElement, {
       attributes: true,
-      subtree: true,
       attributeFilter: ["data-theme"],
     });
 
@@ -150,6 +177,9 @@ export function NeonCursor() {
     const handleMove = (e: MouseEvent) => {
       target.current.x = e.clientX;
       target.current.y = e.clientY;
+      const targetEl = e.target as HTMLElement | null;
+      const inNativeCursorZone = !!targetEl?.closest("[data-native-cursor]");
+      hideCursor.current = inNativeCursorZone;
     };
 
     const handleDown = () => {
@@ -159,33 +189,39 @@ export function NeonCursor() {
       clicking.current = false;
     };
 
-    const handleEnterInteractive = () => { mode.current = "select"; };
-    const handleEnterCard = () => { mode.current = "hack"; };
-    const handleLeave = () => { mode.current = "default"; };
+    const handlePointerOver = (e: Event) => {
+      const targetEl = e.target as HTMLElement | null;
+      if (!targetEl) return;
+      if (targetEl.closest("[data-native-cursor]")) {
+        hideCursor.current = true;
+        return;
+      }
+      hideCursor.current = false;
+      if (targetEl.closest(".holo-card, .glass-card, [data-cursor='hack']")) {
+        mode.current = "hack";
+        return;
+      }
+      if (targetEl.closest("a, button, input, textarea, select, [role='button']")) {
+        mode.current = "select";
+        return;
+      }
+      mode.current = "default";
+    };
+
+    const handlePointerOut = (e: Event) => {
+      const targetEl = e.target as HTMLElement | null;
+      if (!targetEl) return;
+      if (targetEl.closest("[data-native-cursor]")) {
+        hideCursor.current = false;
+      }
+      mode.current = "default";
+    };
 
     window.addEventListener("mousemove", handleMove, { passive: true });
     window.addEventListener("mousedown", handleDown);
     window.addEventListener("mouseup", handleUp);
-
-    // Bind interactive element listeners
-    const bindListeners = () => {
-      document.querySelectorAll("a, button, input, textarea, select, [role='button']").forEach((el) => {
-        el.addEventListener("mouseenter", handleEnterInteractive);
-        el.addEventListener("mouseleave", handleLeave);
-        (el as HTMLElement).style.cursor = "none";
-      });
-
-      document.querySelectorAll(".holo-card, .glass-card, [data-cursor='hack']").forEach((el) => {
-        el.addEventListener("mouseenter", handleEnterCard);
-        el.addEventListener("mouseleave", handleLeave);
-        (el as HTMLElement).style.cursor = "none";
-      });
-    };
-
-    bindListeners();
-
-    const observer = new MutationObserver(bindListeners);
-    observer.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener("mouseover", handlePointerOver, true);
+    document.addEventListener("mouseout", handlePointerOut, true);
 
     // Start animation loop
     rafId.current = requestAnimationFrame(animate);
@@ -194,7 +230,8 @@ export function NeonCursor() {
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mousedown", handleDown);
       window.removeEventListener("mouseup", handleUp);
-      observer.disconnect();
+      document.removeEventListener("mouseover", handlePointerOver, true);
+      document.removeEventListener("mouseout", handlePointerOut, true);
       themeObserver.disconnect();
       cancelAnimationFrame(rafId.current);
       document.documentElement.style.cursor = "";
@@ -208,14 +245,14 @@ export function NeonCursor() {
       {/* Outer ring */}
       <div
         ref={ringRef}
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9998]"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[11000]"
         style={{ willChange: "transform", border: "1px solid rgba(0,245,255,0.2)" }}
       />
 
       {/* Crosshair lines */}
       <div
         ref={crossHRef}
-        className="fixed top-0 left-0 pointer-events-none z-[9998]"
+        className="fixed top-0 left-0 pointer-events-none z-[11000]"
         style={{
           willChange: "transform",
           width: 16,
@@ -225,7 +262,7 @@ export function NeonCursor() {
       />
       <div
         ref={crossVRef}
-        className="fixed top-0 left-0 pointer-events-none z-[9998]"
+        className="fixed top-0 left-0 pointer-events-none z-[11000]"
         style={{
           willChange: "transform",
           width: 1,
@@ -237,7 +274,7 @@ export function NeonCursor() {
       {/* Center dot */}
       <div
         ref={dotRef}
-        className="fixed top-0 left-0 rounded-full pointer-events-none z-[9999]"
+        className="fixed top-0 left-0 rounded-full pointer-events-none z-[11001]"
         style={{
           willChange: "transform",
           width: 4,
@@ -250,7 +287,7 @@ export function NeonCursor() {
       {/* Mode label */}
       <div
         ref={labelRef}
-        className="fixed top-0 left-0 pointer-events-none z-[9998] font-mono text-[8px] tracking-[0.2em] uppercase"
+        className="fixed top-0 left-0 pointer-events-none z-[11000] font-mono text-[8px] tracking-[0.2em] uppercase"
         style={{ willChange: "transform", opacity: 0 }}
       />
     </>

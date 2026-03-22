@@ -1,33 +1,29 @@
-import { useState, useRef, lazy, Suspense } from "react";
-import { motion, AnimatePresence, type PanInfo } from "framer-motion";
+import { useState, lazy, Suspense, type ReactNode } from "react";
+import { LayoutGroup, motion } from "framer-motion";
 import {
   ExternalLink,
   Github,
   Zap,
   Shield,
   Eye,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { HoloCard } from "@/components/ui/HoloCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
 import { projects, projectCategories, type Project } from "@/data/projects";
+import { navCodename } from "@/data/navSections";
+import { hudType } from "@/lib/sectionTypography";
+import { cn } from "@/lib/utils";
 
 const MissionDossierModal = lazy(() =>
   import("@/components/modals/MissionDossierModal").then((m) => ({ default: m.MissionDossierModal }))
 );
-import { cn } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DYNAMIC MISSION ARCHIVE — Swipeable project cards with Notion / Live / GitHub
+// MISSION ARCHIVE — Responsive grid (scan all missions at once)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const SWIPE_THRESHOLD = 50;
-const DRAG_ELASTICITY = 0.15;
-
-/** Notion icon SVG (inline to avoid extra dependency) */
 function NotionIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -43,7 +39,6 @@ function NotionIcon({ size = 14 }: { size?: number }) {
   );
 }
 
-/** Quick-action link buttons row */
 function ProjectLinks({ project, className }: { project: Project; className?: string }) {
   const links = [
     project.notionUrl && { href: project.notionUrl, label: "Notion", icon: <NotionIcon size={13} /> },
@@ -54,7 +49,7 @@ function ProjectLinks({ project, className }: { project: Project; className?: st
       label: l.label,
       icon: l.label.toLowerCase().includes("github") ? <Github size={13} /> : <ExternalLink size={13} />,
     })),
-  ].filter(Boolean) as { href: string; label: string; icon: React.ReactNode }[];
+  ].filter(Boolean) as { href: string; label: string; icon: ReactNode }[];
 
   if (links.length === 0) return null;
 
@@ -67,10 +62,7 @@ function ProjectLinks({ project, className }: { project: Project; className?: st
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-mono
-            bg-white/5 border border-white/10 text-slate-300
-            hover:bg-neon-cyan/10 hover:border-neon-cyan/30 hover:text-neon-cyan
-            transition-all duration-200"
+          className={hudType.linkChip}
         >
           {link.icon}
           {link.label}
@@ -80,205 +72,96 @@ function ProjectLinks({ project, className }: { project: Project; className?: st
   );
 }
 
-/** Single archive card — used inside the carousel */
-function ArchiveCard({
+function MissionGridCard({
   project,
+  index,
+  total,
   onOpenDossier,
 }: {
   project: Project;
+  index: number;
+  total: number;
   onOpenDossier: () => void;
 }) {
   const glowColor = project.category === "ai" ? "168, 85, 247" : "0, 245, 255";
+  const tagLimit = 4;
+  const extraTags = project.tags.length - tagLimit;
 
   return (
-    <HoloCard
-      padding="p-0"
-      className="h-full flex flex-col select-none"
-      glowColor={glowColor}
-    >
-      <div className="p-6 pb-0 flex flex-col flex-1">
-        {/* Header row */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+    <HoloCard padding="p-0" className="h-full min-h-0 flex flex-col" glowColor={glowColor}>
+      <div className="flex min-h-0 flex-1 flex-col gap-4 p-6 pb-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             {project.status === "classified" && (
-              <span className="flex items-center gap-1 text-[10px] text-neon-cyan/80 px-1.5 py-0.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/20 font-mono animate-[glowPulse_3s_ease-in-out_infinite]">
-                <Shield size={9} /> CLASSIFIED
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1 rounded-full border border-neon-cyan/20 bg-neon-cyan/10 px-2 py-1 text-neon-cyan/80",
+                  hudType.monoPill,
+                )}
+              >
+                <Shield size={10} strokeWidth={2} aria-hidden />
+                <span className="font-semibold">Classified</span>
               </span>
             )}
             {project.featured && (
-              <span className="flex items-center gap-1 text-[10px] text-neon-purple/80 px-1.5 py-0.5 rounded-full bg-neon-purple/10 border border-neon-purple/20 font-mono">
-                <Zap size={10} /> Featured
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1 rounded-full border border-neon-purple/20 bg-neon-purple/10 px-2 py-1 text-neon-purple/85",
+                  hudType.monoPill,
+                )}
+              >
+                <Zap size={10} strokeWidth={2} aria-hidden />
+                Featured
               </span>
             )}
           </div>
-          <span className="text-[10px] text-slate-600 font-mono">
-            {String(projects.indexOf(project) + 1).padStart(2, "0")}/{String(projects.length).padStart(2, "0")}
+          <span className={cn(hudType.indexCounter, "shrink-0")}>
+            {String(index + 1).padStart(2, "0")}/{String(total).padStart(2, "0")}
           </span>
         </div>
 
-        {/* Title */}
-        <h3 className="text-lg font-bold text-slate-100 font-display mb-2 leading-tight">
-          {project.title}
-        </h3>
+        <h3 className={hudType.cardTitle}>{project.title}</h3>
 
-        {/* Metrics (terminal-style projects) */}
         {project.metrics && project.metrics.length > 0 && (
-          <div className="mb-3 flex flex-col gap-1">
-            {project.metrics.map((m, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs font-mono">
-                <span className="text-neon-cyan/60">&gt;</span>
-                <span className="text-slate-400">{m.label}:</span>
-                <span className="text-neon-cyan font-semibold">{m.value}</span>
+          <div className="flex flex-col gap-1">
+            {project.metrics.slice(0, 3).map((m, i) => (
+              <div key={i} className={hudType.metricRow}>
+                <span className="text-neon-cyan/50">&gt;</span>
+                <span className={hudType.metricLabel}>{m.label}:</span>
+                <span className={hudType.metricValue}>{m.value}</span>
               </div>
             ))}
           </div>
         )}
 
-        {/* Description */}
-        <p className="text-sm text-slate-300 leading-relaxed mb-3 line-clamp-4 flex-1">
-          {project.description}
-        </p>
+        <p className={cn(hudType.cardBody, "line-clamp-3 flex-1")}>{project.description}</p>
 
-        {/* Impact */}
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-3 rounded-full bg-neon-purple/8 border border-neon-purple/20 text-[11px] font-mono text-neon-purple font-semibold self-start">
-          {project.impact}
-        </div>
+        <div className={cn(hudType.impactStrip, "max-w-full self-start line-clamp-2")}>{project.impact}</div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {project.tags.map((tag) => (
+        <div className="flex flex-wrap gap-2">
+          {project.tags.slice(0, tagLimit).map((tag) => (
             <Tag key={tag} label={tag} color={project.category === "ai" ? "purple" : "cyan"} />
           ))}
+          {extraTags > 0 && (
+            <span className={cn(hudType.monoPill, "px-2 py-1 text-slate-500")}>+{extraTags}</span>
+          )}
         </div>
 
-        {/* Action links */}
-        <ProjectLinks project={project} className="mb-4" />
+        <ProjectLinks project={project} />
       </div>
 
-      {/* Footer — open dossier */}
       <button
+        type="button"
         onClick={onOpenDossier}
-        className="flex items-center justify-center gap-2 w-full px-6 py-3.5
-          border-t border-white/6 text-xs font-mono
-          text-neon-cyan/50 hover:text-neon-cyan hover:bg-neon-cyan/5
-          transition-all duration-200 cursor-pointer"
+        className={cn(
+          "mt-auto flex w-full items-center justify-center gap-2 border-t border-white/10 px-4 py-3",
+          hudType.missionCta,
+        )}
       >
-        <Eye size={12} />
-        Open Full Dossier
+        <Eye size={12} strokeWidth={2} aria-hidden />
+        Open full dossier
       </button>
     </HoloCard>
-  );
-}
-
-/** Swipeable carousel with drag gestures */
-function MissionCarousel({
-  items,
-  onOpenDossier,
-}: {
-  items: Project[];
-  onOpenDossier: (p: Project) => void;
-}) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const constraintsRef = useRef<HTMLDivElement>(null);
-
-  // Clamp active index when filtered list changes
-  const clampedIndex = Math.min(activeIndex, items.length - 1);
-  if (clampedIndex !== activeIndex) setActiveIndex(clampedIndex);
-
-  const paginate = (dir: 1 | -1) => {
-    setActiveIndex((prev) => {
-      const next = prev + dir;
-      if (next < 0) return items.length - 1;
-      if (next >= items.length) return 0;
-      return next;
-    });
-  };
-
-  const handleDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.x < -SWIPE_THRESHOLD) paginate(1);
-    else if (info.offset.x > SWIPE_THRESHOLD) paginate(-1);
-  };
-
-  if (items.length === 0) {
-    return (
-      <p className="text-center text-slate-500 font-mono text-sm py-16">
-        No missions in this category.
-      </p>
-    );
-  }
-
-  return (
-    <div className="relative">
-      {/* Carousel viewport */}
-      <div ref={constraintsRef} className="overflow-hidden relative">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div
-            key={items[clampedIndex].id}
-            initial={{ opacity: 0, x: 200, scale: 0.95 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -200, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={DRAG_ELASTICITY}
-            onDragEnd={handleDragEnd}
-            className="w-full max-w-xl mx-auto touch-pan-y"
-          >
-            <ArchiveCard
-              project={items[clampedIndex]}
-              onOpenDossier={() => onOpenDossier(items[clampedIndex])}
-            />
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Navigation arrows */}
-      {items.length > 1 && (
-        <>
-          <button
-            onClick={() => paginate(-1)}
-            aria-label="Previous mission"
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 sm:-translate-x-6
-              w-10 h-10 rounded-full bg-navy-950/80 border border-white/10
-              flex items-center justify-center text-slate-400
-              hover:text-neon-cyan hover:border-neon-cyan/30 transition-all z-10"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            onClick={() => paginate(1)}
-            aria-label="Next mission"
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 sm:translate-x-6
-              w-10 h-10 rounded-full bg-navy-950/80 border border-white/10
-              flex items-center justify-center text-slate-400
-              hover:text-neon-cyan hover:border-neon-cyan/30 transition-all z-10"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </>
-      )}
-
-      {/* Pagination dots */}
-      {items.length > 1 && (
-        <div className="flex justify-center gap-2 mt-6" role="tablist" aria-label="Mission pagination">
-          {items.map((item, i) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveIndex(i)}
-              role="tab"
-              aria-selected={i === clampedIndex}
-              aria-label={`Go to ${item.title}`}
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-300",
-                i === clampedIndex
-                  ? "w-8 bg-neon-cyan shadow-[0_0_8px_rgba(0,245,255,0.4)]"
-                  : "w-1.5 bg-slate-700 hover:bg-slate-500",
-              )}
-            />
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -286,66 +169,81 @@ export function Projects() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const filteredProjects = activeFilter === "all"
-    ? projects
-    : projects.filter((p) => p.category === activeFilter);
+  const filteredProjects =
+    activeFilter === "all" ? projects : projects.filter((p) => p.category === activeFilter);
 
   return (
     <>
-      <section id="projects" className="max-w-6xl mx-auto px-6 py-24" aria-label="Projects section">
+      <section id="projects" className="section-shell" aria-label="Projects section">
         <AnimatedSection>
           <SectionHeader
-            codename="// 04"
+            codename={navCodename("projects")}
             label="Mission Archive"
-            sub="Systems, tools, and process IP"
+            sub="Systems, tools, and process IP — scan the grid or open a dossier"
           />
         </AnimatedSection>
 
-        {/* Category filters */}
-        <AnimatedSection delay={0.1} className="mb-10">
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Project filter">
-            {projectCategories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setActiveFilter(cat.id)}
-                role="tab"
-                aria-selected={activeFilter === cat.id}
-                className={cn(
-                  "px-3.5 py-1.5 rounded-full text-xs font-mono transition-all border",
-                  activeFilter === cat.id
-                    ? "bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan"
-                    : "bg-transparent border-white/10 text-slate-500 hover:border-white/20 hover:text-slate-300",
-                )}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+        <AnimatedSection delay={0.05}>
+          <p className="type-overline">Filter</p>
+          <LayoutGroup id="mission-filter">
+            <div
+              className="flex flex-wrap gap-2 section-toolbar-gap"
+              role="tablist"
+              aria-label="Project filter"
+            >
+              {projectCategories.map((cat) => {
+                const isActive = activeFilter === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setActiveFilter(cat.id)}
+                    role="tab"
+                    aria-selected={isActive}
+                    className={cn(
+                      "relative z-0 overflow-hidden rounded-full px-3 py-1.5 text-xs font-mono transition-colors",
+                      isActive
+                        ? "border border-transparent text-neon-cyan"
+                        : "border border-white/10 text-slate-400 hover:border-neon-cyan/20 hover:text-neon-cyan",
+                    )}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="mission-filter-glow"
+                        className="absolute inset-0 -z-10 rounded-full border border-neon-cyan/40 bg-neon-cyan/10"
+                        transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                      />
+                    )}
+                    <span className="relative z-10">{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </LayoutGroup>
         </AnimatedSection>
 
-        {/* Swipeable mission carousel */}
-        <AnimatedSection delay={0.2}>
-          <MissionCarousel
-            items={filteredProjects}
-            onOpenDossier={(p) => setSelectedProject(p)}
-          />
-        </AnimatedSection>
+        <div className="section-card-grid sm:grid-cols-2 xl:grid-cols-3">
+          {filteredProjects.map((project, i) => (
+            <AnimatedSection key={project.id} delay={Math.min(i * 0.04, 0.24)} className="h-full">
+              <MissionGridCard
+                project={project}
+                index={i}
+                total={filteredProjects.length}
+                onOpenDossier={() => setSelectedProject(project)}
+              />
+            </AnimatedSection>
+          ))}
+        </div>
 
-        {/* Swipe hint */}
-        <AnimatedSection delay={0.3}>
-          <p className="text-center text-[10px] text-slate-600 font-mono mt-4 select-none">
-            Swipe or use arrows to navigate missions
+        {filteredProjects.length === 0 && (
+          <p className={cn(hudType.cardMeta, "py-16 text-center font-mono")}>
+            No missions in this category.
           </p>
-        </AnimatedSection>
-
+        )}
       </section>
 
-      {/* Dossier Modal (lazy-loaded) */}
       <Suspense fallback={null}>
-        <MissionDossierModal
-          project={selectedProject}
-          onClose={() => setSelectedProject(null)}
-        />
+        <MissionDossierModal project={selectedProject} onClose={() => setSelectedProject(null)} />
       </Suspense>
     </>
   );

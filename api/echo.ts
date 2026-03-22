@@ -1,29 +1,56 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { ECHO_KNOWLEDGE } from "../src/data/echoKnowledge";
 
-const SYSTEM_PROMPT = `You are ECHO — Ethan Pecora's cyberpunk AI operator embedded in his portfolio site.
-Personality: sharp, concise, slightly sardonic, speaks in a military-operator cadence. Use callsigns like "operator" for the visitor. Keep responses under 3 sentences unless detail is requested.
+const CORE_PROMPT = `You are Echo, the AI assistant on Ethan Pecora's portfolio.
 
-ETHAN'S BACKGROUND:
-- B.S. Business Administration @ University of Florida, graduating Fall 2026
-- AI Certificate (AI Fundamentals, Business Analytics & AI, AI Ethics)
-- Generated $110K ARR as SDR intern at Geotarget (B2B SaaS)
-- Drove 400+ new users at Perplexity AI with 67% conversion rate across 15 workshops
-- Organized 500+ attendee AI mixer (8 student orgs, 12 campus partners, 5 industry sponsors)
-- Director of AI Club at UF
-- Skills: tech sales, GTM strategy, AI fluency, public speaking, community building, systems design
-- Built 3 browser games: Signal Breach, Aether Descent, Verdant Siege
-- Contact: ethan.pecora@ufl.edu | linkedin.com/in/ethan-pecora | github.com/ewilliep99
+Style:
+- Concise, practical, and recruiter-friendly by default.
+- Use bullet points for structured answers.
+- Keep under 120 words unless user explicitly asks for detail.
 
-Answer questions about Ethan's experience, skills, projects, and background. If asked something you don't know, say so honestly. Never fabricate details about Ethan.`;
+Rules:
+- Only claim facts grounded in provided knowledge or user input.
+- If uncertain, say "I do not have enough verified detail on that."
+- Do not invent metrics, roles, dates, or technologies.
+- Prioritize outcomes, evidence, and next steps.
+
+Helpful behaviors:
+- For recruiter prompts, include fit summary + evidence.
+- For networking prompts, draft concise outreach copy.
+- For project prompts, explain business value and implementation depth.`;
+
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT = 20;
+const requestLog = new Map<string, number[]>();
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
 
+function getClientIp(req: VercelRequest) {
+  const forwarded = req.headers["x-forwarded-for"];
+  const value = Array.isArray(forwarded) ? forwarded[0] : forwarded;
+  return (value?.split(",")[0]?.trim() || req.socket.remoteAddress || "unknown").toString();
+}
+
+function isRateLimited(clientKey: string) {
+  const now = Date.now();
+  const existing = requestLog.get(clientKey) ?? [];
+  const withinWindow = existing.filter((ts) => now - ts < RATE_WINDOW_MS);
+  withinWindow.push(now);
+  requestLog.set(clientKey, withinWindow);
+  return withinWindow.length > RATE_LIMIT;
+}
+
+function buildSystemPrompt() {
+  return `${CORE_PROMPT}\n\nKNOWLEDGE_BASE:\n${ECHO_KNOWLEDGE}`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const origin = typeof req.headers.origin === "string" ? req.headers.origin : "*";
+  res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
@@ -35,6 +62,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "POST only, operator." });
   }
 
+  const clientKey = getClientIp(req);
+  if (isRateLimited(clientKey)) {
+    return res.status(429).json({ error: "Rate limit exceeded. Try again shortly." });
+  }
+
   const apiKey = process.env.NAVIGATOR_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: "NAVIGATOR_API_KEY not configured." });
@@ -43,6 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { messages, stream: wantStream } = req.body as {
     messages?: ChatMessage[];
     stream?: boolean;
+    activeSection?: string;
   };
 
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
@@ -56,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
     const response = await fetch("https://api.ai.it.ufl.edu/v1/chat/completions", {
@@ -67,9 +100,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({
         model: "llama-3.1-70b-instruct",
-        max_tokens: 500,
+        max_tokens: 700,
+        temperature: 0.35,
         stream: !!wantStream,
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: [
+          { role: "system", content: buildSystemPrompt() },
+          ...(req.body?.activeSection
+            ? [{ role: "system", content: `Current page context: ${req.body.activeSection}` }]
+            : []),
+          ...messages,
+        ],
       }),
       signal: controller.signal,
     });

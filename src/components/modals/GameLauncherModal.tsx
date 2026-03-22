@@ -7,7 +7,7 @@ import type { Game } from "@/data/games";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // GAME LAUNCHER MODAL — Full-screen game view with sidebar info
-// Embeds existing Phaser game via iframe + shows specs, controls, high score
+// Embeds the arcade build via iframe (e.g. /games/signal-breach/) + specs, controls, high score
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface GameLauncherModalProps {
@@ -121,7 +121,11 @@ export function GameLauncherModal({ game, onClose }: GameLauncherModalProps) {
           {/* ── Main content area ───────────────────────────────────── */}
           <div className="absolute top-12 bottom-0 left-0 right-0 flex">
             {/* Game iframe */}
-            <div className="flex-1 relative bg-black">
+            <motion.div
+              layoutId={`arcade-viewport-${game.id}`}
+              className="flex-1 relative bg-black"
+              transition={{ type: "spring", stiffness: 380, damping: 34 }}
+            >
               {gameUrl ? (
                 <iframe
                   src={gameUrl}
@@ -130,12 +134,12 @@ export function GameLauncherModal({ game, onClose }: GameLauncherModalProps) {
                   allow="autoplay; fullscreen"
                 />
               ) : (
-                <div className="flex items-center justify-center h-full text-slate-500 font-mono text-sm">
-                  Game not available
+                <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
+                  <p className="text-slate-400 font-mono text-sm">No playable build for this module yet.</p>
+                  <p className="text-xs text-slate-600 max-w-sm">Check back — or play Signal Breach from the arcade grid.</p>
                 </div>
               )}
 
-              {/* CRT bezel effect on edges */}
               <div className="absolute inset-0 pointer-events-none border border-white/[0.03] rounded-sm" />
               <div
                 className="absolute inset-0 pointer-events-none"
@@ -143,7 +147,7 @@ export function GameLauncherModal({ game, onClose }: GameLauncherModalProps) {
                   background: "radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%)",
                 }}
               />
-            </div>
+            </motion.div>
 
             {/* Sidebar */}
             <AnimatePresence>

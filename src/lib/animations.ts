@@ -2,9 +2,9 @@
 // NEON NEXUS — Shared Framer Motion variants
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import type { Variants, Transition } from "framer-motion";
+import type { Variants } from "framer-motion";
 
-// Smooth easing curve
+/** Custom cubic bezier — Framer accepts tuple easing on transitions */
 const neonEase = [0.22, 1, 0.36, 1] as const;
 
 // Staggered container
@@ -22,7 +22,7 @@ export const fadeUpItem: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, ease: neonEase as unknown as string } as Transition,
+    transition: { duration: 0.6, ease: neonEase },
   },
 };
 
@@ -32,7 +32,7 @@ export const fadeInLeft: Variants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.6, ease: neonEase as unknown as string } as Transition,
+    transition: { duration: 0.6, ease: neonEase },
   },
 };
 
@@ -42,7 +42,7 @@ export const fadeInRight: Variants = {
   visible: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.6, ease: neonEase as unknown as string } as Transition,
+    transition: { duration: 0.6, ease: neonEase },
   },
 };
 
@@ -52,7 +52,7 @@ export const scaleUp: Variants = {
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.5, ease: neonEase as unknown as string } as Transition,
+    transition: { duration: 0.5, ease: neonEase },
   },
 };
 
@@ -73,6 +73,6 @@ export const navSlideDown: Variants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { duration: 0.6, ease: neonEase as unknown as string } as Transition,
+    transition: { duration: 0.6, ease: neonEase },
   },
 };

@@ -7,28 +7,56 @@ export const bio = {
   firstName: "Ethan",
   initials: "EP",
 
+  // Hero — featured spotlight (scroll target must match a real section id)
+  featuredSpotlight: {
+    badge: "Live build",
+    title: "Resonate",
+    /** Short hook under the title */
+    tagline: "Mental wellness platform for the UF campus",
+    /** One readable paragraph — who it’s for and what ships */
+    description:
+      "Students get mood-aware sound, RPG-style quests grounded in evidence-based psychology, anonymous peer matching with safeguards, and journey timelines they can share with counselors.",
+    /** Scannable proof chips (shown as pills in the banner) */
+    highlights: ["~57K students in scope", "3-tier crisis routing", "UF-gated access + safeguards"] as const,
+    tags: ["Next.js", "FastAPI", "Supabase", "React 19"] as const,
+    scrollToId: "projects" as const,
+    ctaLabel: "Open mission dossier",
+    ctaHint: "Full write-up, metrics, and stack in the archive",
+  },
+
   // Hero
-  headline: "Neon Operator",
-  tagline: "Closing Tomorrow's Deals Today",
+  headline: "GTM + AI Operator",
+  tagline: "Building Revenue Systems That Compound",
   heroOneLiner:
-    "I build communities, close deals, and make AI make sense.",
+    "I turn AI products into real adoption through sales execution, workshops, and repeatable playbooks.",
   heroSub:
-    "Business Administration @ UF · Graduating Fall 2026 · AI Certificate · Tech sales & GTM operator.",
+    "B.S. Business Administration @ UF · Fall 2026 · AI Certificate · Open to GTM, sales, and AI strategy roles.",
 
   // Recruiter-facing blurb
   recruiterBlurb:
-    "Generated $110K ARR in B2B SaaS sales, drove 400+ new users at Perplexity AI with a 67% conversion rate, and organized a 500+ attendee AI mixer. Graduating Fall 2026 with an AI Certificate from the University of Florida. Open to full-time roles in tech sales, GTM, and AI strategy.",
+    "I blend quota-carrying execution with technical fluency. Recent outcomes include $110K ARR generated in B2B SaaS, 400+ new users driven for Perplexity AI at a 67% conversion rate, and a 500+ attendee multi-org AI event at UF.",
 
-  // About / origin story
-  originStory: `I went from real estate to computer science to entrepreneurship to professional selling — and chose Mass Communications because every pivot added a tool to the kit. Each one taught me something: how products get built, how they get sold, and how complex ideas become stories that move people to action.`,
-
-  originStory2: `I sell, I build systems, and I get things across the finish line.\n\nThat's not a tagline — it's what the numbers show. $110K in ARR as a sales development intern at Geotarget. 400+ new users at Perplexity AI with a 67% conversion rate across 15 workshops. A 500+ attendee AI mixer that brought together 8 student orgs, 12 campus partners, and 5 industry sponsors.`,
-
-  traits: [
-    "Solution Seller — I listen first, then prescribe",
-    "Public Speaker — 15 workshops, 600+ students, comfortable on stage",
-    "AI-Fluent — I ship with it daily, from prompt chains to automated workflows",
-    "Systems Builder — I create repeatable processes before I scale effort",
+  // About / profile content model
+  profileIntro:
+    "I am a business operator focused on GTM and AI adoption. My edge is moving across strategy, execution, and communication without handoff friction.",
+  profileNarrative:
+    "My path moved through real estate, CS, entrepreneurship, and sales. Each chapter added a practical skill: product intuition, technical literacy, persuasion, and systems thinking. That mix helps me translate complex AI capabilities into outcomes teams can measure.",
+  specializations: [
+    "Technical sales and pipeline creation for B2B tools",
+    "Campus and community-led growth programs",
+    "AI workflow design for teams and individual operators",
+    "Executive-ready storytelling and workshop facilitation",
+  ],
+  achievements: [
+    { label: "ARR Generated", value: "$110K", context: "SDR internship at Geotarget" },
+    { label: "Users Driven", value: "400+", context: "Perplexity AI activation campaigns" },
+    { label: "Conversion Rate", value: "67%", context: "Workshop-to-signup program performance" },
+    { label: "AI Mixer Attendance", value: "500+", context: "Cross-campus event leadership" },
+  ],
+  currentFocus: [
+    "Building scalable GTM systems for AI products",
+    "Expanding practical AI literacy through workshops",
+    "Shipping productized workflows that reduce decision friction",
   ],
 
   // Education
@@ -40,20 +68,18 @@ export const bio = {
     certCourses: ["AI Fundamentals", "Business Analytics & AI", "AI Ethics"],
   },
 
-  // Contact & links
+  // Contact & links (email + Calendly are primary on-site; phone available on resume)
   email: "ethan.pecora@ufl.edu",
-  phone: "6303346574",
   linkedinUrl: "https://linkedin.com/in/ethan-pecora",
   githubUrl: "https://github.com/ewilliep99",
-  twitterUrl: "https://twitter.com/EwillieP",
+  twitterUrl: "https://x.com/EwillieP",
   calendlyUrl: "https://calendly.com/pecoraethan/30min",
 
   // Assets
   resumePdf: "/resume.pdf",
   avatar: "/assets/IMG_5245.jpeg",
 
-  // Location
-  university: "University of Florida",
+  // Location (school name lives under education.university — keep in sync there)
   major: "Business Administration",
   location: "Gainesville, FL",
 } as const;
@@ -61,7 +87,7 @@ export const bio = {
 // Floating stats displayed on the holographic photo card
 export const holoStats = [
   { label: "Years in Sales", value: "5+" },
-  { label: "AI Club", value: "Director" },
+  { label: "UF AI Club", value: "Director · Connections" },
   { label: "ARR Generated", value: "$110K" },
   { label: "Users Driven", value: "400+" },
 ] as const;

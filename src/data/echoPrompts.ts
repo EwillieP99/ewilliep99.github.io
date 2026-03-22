@@ -1,6 +1,11 @@
-import type { SectionId } from "@/components/hud/NavigationProvider";
+import type { SectionId } from "@/data/navSections";
 
 export const SECTION_PROMPTS: Record<SectionId | "default", string[]> = {
+  home: [
+    "Give me a 30-second intro for Ethan",
+    "What role is Ethan best suited for?",
+    "Summarize this portfolio quickly",
+  ],
   about: [
     "What makes Ethan different from other candidates?",
     "Summarize Ethan's background in 30 seconds",
@@ -12,24 +17,29 @@ export const SECTION_PROMPTS: Record<SectionId | "default", string[]> = {
     "How did the Perplexity AI experience shape Ethan?",
   ],
   augmentations: [
-    "What are Ethan's strongest technical skills?",
-    "How does Ethan apply AI in real-world settings?",
-    "Rate Ethan's GTM strategy experience",
+    "Which capabilities are strongest and why?",
+    "What evidence supports Ethan's GTM depth?",
+    "How technical is Ethan for a GTM role?",
   ],
   projects: [
-    "Pitch me on Ethan's best project",
-    "What's the tech stack behind this portfolio?",
-    "How do these projects demonstrate business value?",
+    "Which project best shows Ethan's ability to ship end-to-end?",
+    "Summarize Resonate for a technical stakeholder in 60 seconds.",
+    "What metrics from the mission archive matter most for a GTM hire?",
   ],
   games: [
-    "How would you sell Verdant Siege to a VC in 60 seconds?",
-    "What game design principles did Ethan use?",
-    "Which game best shows Ethan's coding ability?",
+    "What makes Signal Breach a strong portfolio piece?",
+    "How does the arcade section reflect Ethan's product taste?",
+    "What would you build as a second browser game for this portfolio?",
   ],
   contact: [
     "Draft a compelling intro email for Ethan",
     "Why should I hire Ethan for my team?",
     "What's the best way to reach Ethan?",
+  ],
+  ai: [
+    "Draft a recruiter outreach message for Ethan",
+    "Write interview questions for this profile",
+    "Create a 90-day onboarding plan for Ethan",
   ],
   default: [
     "Pitch me on Ethan like I'm a skeptical recruiter",

@@ -48,9 +48,17 @@ function devApiPlugin() {
           let body = "";
           req.on("data", (chunk) => { body += chunk; });
           req.on("end", async () => {
+            let parsedBody: Record<string, unknown> = {};
+            if (body) {
+              try {
+                parsedBody = JSON.parse(body) as Record<string, unknown>;
+              } catch {
+                parsedBody = {};
+              }
+            }
             // Build a minimal VercelRequest/VercelResponse-like object
             const fakeReq = Object.assign(req, {
-              body: body ? JSON.parse(body) : {},
+              body: parsedBody,
               query: Object.fromEntries(new URL(req.url!, `http://${req.headers.host}`).searchParams),
             });
             const headers: Record<string, string> = {};

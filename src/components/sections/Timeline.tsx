@@ -6,6 +6,7 @@ import { HoloCard } from "@/components/ui/HoloCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Tag } from "@/components/ui/Tag";
 import { timeline, type TimelineEntry } from "@/data/timeline";
+import { navCodename } from "@/data/navSections";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/utils";
 
@@ -269,9 +270,9 @@ export function Timeline() {
   }, []);
 
   return (
-    <section id="timeline" className="max-w-6xl mx-auto px-6 py-24" aria-label="Timeline section">
+    <section id="timeline" className="section-shell" aria-label="Timeline section">
       <AnimatedSection>
-        <SectionHeader codename="// 02" label="Chrono Log" sub="Experience & education timeline" />
+        <SectionHeader codename={navCodename("timeline")} label="Chrono Log" sub="Experience & education timeline" />
       </AnimatedSection>
 
       {/* Expand/collapse all control */}
@@ -305,7 +306,7 @@ export function Timeline() {
           aria-hidden="true"
         />
 
-        <div className="flex flex-col gap-5 md:pl-8">
+        <div className="flex flex-col gap-6 md:pl-8">
           {timelineYears.map((year) => (
             <div key={year}>
               {/* Year marker */}

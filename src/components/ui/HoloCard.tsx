@@ -57,7 +57,7 @@ export function HoloCard({
     <motion.div
       ref={cardRef}
       className={cn(
-        "holo-card relative overflow-hidden rounded-xl border border-white/10",
+        "holo-card relative flex min-h-0 flex-col overflow-hidden rounded-xl border border-white/10",
         "bg-white/[0.03] backdrop-blur-xl",
         padding,
         className,
@@ -131,8 +131,8 @@ export function HoloCard({
         }}
       />
 
-      {/* ── Content ──────────────────────────────────────────────────── */}
-      <div className="relative z-10">{children}</div>
+      {/* ── Content (flex column so h-full / flex-1 children lay out evenly) ─ */}
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</div>
     </motion.div>
   );
 }

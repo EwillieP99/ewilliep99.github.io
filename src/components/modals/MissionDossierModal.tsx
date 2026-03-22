@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion";
 import { X, Shield, Target, BookOpen, FileText } from "lucide-react";
 import { Tag } from "@/components/ui/Tag";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { hudType } from "@/lib/sectionTypography";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/data/projects";
 
@@ -55,10 +56,10 @@ function ResultCounter({ label, value, delay }: { label: string; value: string; 
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4 }}
-      className="bg-navy-950/80 border border-neon-cyan/15 rounded-lg p-4 text-center hover:border-neon-cyan/30 hover:shadow-[0_0_15px_rgba(0,245,255,0.08)] transition-all duration-300"
+      className="rounded-lg border border-white/10 bg-navy-950/80 p-4 text-center transition-all duration-300 hover:border-neon-cyan/25 hover:shadow-[0_0_15px_rgba(0,245,255,0.06)]"
     >
-      <p className="text-xl font-bold text-neon-cyan font-display tabular-nums">{display}</p>
-      <p className="text-[11px] text-slate-500 font-mono mt-1 uppercase tracking-wider">{label}</p>
+      <p className="font-display text-xl font-bold tabular-nums text-neon-cyan">{display}</p>
+      <p className={cn(hudType.overline, "mt-2 text-center")}>{label}</p>
     </motion.div>
   );
 }
@@ -117,45 +118,52 @@ export function MissionDossierModal({ project, onClose }: MissionDossierModalPro
             <button
               onClick={onClose}
               autoFocus
-              className="absolute -top-2 -right-2 z-20 w-10 h-10 rounded-full bg-navy-950/90 border border-neon-cyan/20 flex items-center justify-center text-slate-400 hover:text-neon-cyan hover:border-neon-cyan/50 transition-all"
+              className="absolute -right-1 -top-1 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-navy-950/90 text-slate-500 transition-colors hover:border-neon-cyan/35 hover:text-neon-cyan"
               aria-label="Close dossier"
             >
-              <X size={18} />
+              <X size={16} strokeWidth={2} />
             </button>
 
-            <div className="rounded-xl border border-neon-cyan/20 bg-navy-950/90 backdrop-blur-2xl overflow-hidden shadow-[0_0_60px_rgba(0,245,255,0.06)]">
+            <div className="overflow-hidden rounded-xl border border-white/10 bg-navy-950/90 shadow-[0_0_60px_rgba(0,245,255,0.05)] backdrop-blur-2xl">
               {/* ── Header ──────────────────────────────────────────────── */}
-              <div className="relative p-6 md:p-8 border-b border-neon-cyan/10">
-                {/* Top glow line */}
-                <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-neon-cyan/40 to-transparent" />
+              <div className="relative border-b border-white/10 p-6 md:p-8">
+                <div className="absolute left-8 right-8 top-0 h-px bg-gradient-to-r from-transparent via-neon-cyan/35 to-transparent" />
 
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    {/* Classified / Active badge */}
-                    <div className="flex items-center gap-2 mb-3">
+                  <div className="min-w-0">
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider border",
+                          "inline-flex items-center gap-1 rounded-full border px-2 py-1 font-semibold",
+                          hudType.monoPill,
                           project.status === "classified"
-                            ? "text-neon-cyan bg-neon-cyan/10 border-neon-cyan/30 shadow-[0_0_10px_rgba(0,245,255,0.15)]"
-                            : "text-neon-green bg-neon-green/10 border-neon-green/30",
+                            ? "border-neon-cyan/25 bg-neon-cyan/10 text-neon-cyan/85"
+                            : "border-neon-green/25 bg-neon-green/10 text-neon-green/85",
                         )}
                       >
-                        <Shield size={10} />
-                        {project.status === "classified" ? "CLASSIFIED" : "ACTIVE"}
+                        <Shield size={10} strokeWidth={2} aria-hidden />
+                        {project.status === "classified" ? "Classified" : "Active"}
                       </span>
                       {project.featured && (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-neon-purple/80 px-2 py-0.5 rounded-full bg-neon-purple/10 border border-neon-purple/20 font-mono">
-                          FEATURED
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1 rounded-full border border-neon-purple/20 bg-neon-purple/10 px-2 py-1 text-neon-purple/85",
+                            hudType.monoPill,
+                          )}
+                        >
+                          Featured
                         </span>
                       )}
                     </div>
 
-                    <h2 id="dossier-title" className="text-2xl md:text-3xl font-bold text-slate-100 font-display mb-2">
+                    <h2
+                      id="dossier-title"
+                      className="mb-3 font-display text-2xl font-bold leading-tight tracking-tight text-slate-100 md:text-3xl"
+                    >
                       {project.title}
                     </h2>
 
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {project.tags.map((tag) => (
                         <Tag key={tag} label={tag} color={project.category === "ai" ? "purple" : "cyan"} />
                       ))}
@@ -165,36 +173,27 @@ export function MissionDossierModal({ project, onClose }: MissionDossierModalPro
               </div>
 
               {/* ── Body ────────────────────────────────────────────────── */}
-              <div className="p-6 md:p-8 space-y-8">
-                {/* Mission Brief */}
+              <div className="space-y-8 p-6 md:p-8">
                 <section>
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText size={14} className="text-neon-cyan/60" />
-                    <h3 className="text-xs font-mono text-neon-cyan/70 uppercase tracking-widest">
-                      Mission Brief
-                    </h3>
+                  <div className={hudType.dossierSection}>
+                    <FileText size={14} className="shrink-0 text-slate-500" aria-hidden />
+                    <span className={hudType.overline}>Mission brief</span>
                   </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    {project.dossier?.fullDescription ?? project.description}
-                  </p>
+                  <p className={hudType.dossierBody}>{project.dossier?.fullDescription ?? project.description}</p>
                 </section>
 
-                {/* Impact badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-neon-purple/8 border border-neon-purple/20">
-                  <Target size={14} className="text-neon-purple/70" />
-                  <span className="text-sm font-mono text-neon-purple/90">{project.impact}</span>
+                <div className={cn(hudType.impactStrip, "max-w-full")}>
+                  <Target size={14} className="shrink-0 text-neon-purple/65" aria-hidden />
+                  {project.impact}
                 </div>
 
-                {/* Quantified Results */}
                 {project.dossier?.results && (
                   <section>
-                    <div className="flex items-center gap-2 mb-4">
-                      <Target size={14} className="text-neon-cyan/60" />
-                      <h3 className="text-xs font-mono text-neon-cyan/70 uppercase tracking-widest">
-                        Quantified Results
-                      </h3>
+                    <div className={cn(hudType.dossierSection, "mb-4")}>
+                      <Target size={14} className="shrink-0 text-slate-500" aria-hidden />
+                      <span className={hudType.overline}>Quantified results</span>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                       {project.dossier.results.map((result, i) => (
                         <ResultCounter
                           key={result.label}
@@ -207,44 +206,40 @@ export function MissionDossierModal({ project, onClose }: MissionDossierModalPro
                   </section>
                 )}
 
-                {/* Debrief */}
                 {project.dossier?.debrief && (
                   <section>
-                    <div className="flex items-center gap-2 mb-4">
-                      <BookOpen size={14} className="text-neon-cyan/60" />
-                      <h3 className="text-xs font-mono text-neon-cyan/70 uppercase tracking-widest">
-                        Debrief
-                      </h3>
+                    <div className={cn(hudType.dossierSection, "mb-4")}>
+                      <BookOpen size={14} className="shrink-0 text-slate-500" aria-hidden />
+                      <span className={hudType.overline}>Debrief</span>
                     </div>
-                    <ul className="space-y-3">
+                    <ul className="flex flex-col gap-3">
                       {project.dossier.debrief.map((item, i) => (
                         <motion.li
                           key={i}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.3 + i * 0.1 }}
-                          className="flex items-start gap-3 text-sm text-slate-300"
+                          className={cn("flex items-start gap-3", hudType.dossierBody)}
                         >
-                          <span className="text-neon-cyan/50 mt-0.5 font-mono text-xs flex-shrink-0">
+                          <span className={cn(hudType.indexCounter, "mt-0.5 w-5 shrink-0 text-neon-cyan/45")}>
                             {String(i + 1).padStart(2, "0")}
                           </span>
-                          {item}
+                          <span>{item}</span>
                         </motion.li>
                       ))}
                     </ul>
                   </section>
                 )}
 
-                {/* Links */}
                 {project.links.length > 0 && (
-                  <div className="flex gap-3 pt-4 border-t border-neon-cyan/10">
+                  <div className="flex flex-wrap gap-2 border-t border-white/10 pt-6">
                     {project.links.map((link) => (
                       <a
                         key={link.href}
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn-ghost text-xs py-2 px-4"
+                        className={hudType.linkChip}
                       >
                         {link.label}
                       </a>
@@ -253,8 +248,7 @@ export function MissionDossierModal({ project, onClose }: MissionDossierModalPro
                 )}
               </div>
 
-              {/* Bottom glow */}
-              <div className="h-px bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+              <div className="h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
             </div>
           </motion.div>
         </motion.div>

@@ -11,7 +11,6 @@ export interface Game {
   tech: string[];
   links: GameLink[];
   highlight: string;
-  // Extended data for full-screen game view
   controls?: string[];
   specs?: string[];
 }
@@ -21,28 +20,23 @@ export const games: Game[] = [
     id: "signal-breach",
     title: "Signal Breach",
     description:
-      "Neon typing-defense arcade game with wave progression, combo scoring, and integrity decay. Built as a fast replay loop with cyber-terminal UI.",
+      "Typing-defense terminal sim: Freeplay for endless waves and high-score runs, or Ramp Up — eight steps with 1·3·5·8·13·21·34·50 words each; the whole step shows as one on-screen block (paragraph) you type through in order, with per-word breach windows.",
     status: "live",
-    tech: ["JavaScript", "Tailwind", "Arcade Loop"],
+    tech: ["JavaScript", "Tailwind CDN", "Web Audio"],
     links: [
       { label: "Play", href: "/games/signal-breach/" },
     ],
-    highlight: "Live now · wave + accuracy + combo systems",
-    controls: ["Type words to decode signals", "Accuracy builds combo multiplier", "ESC to pause"],
-    specs: ["Wave progression system", "Combo scoring engine", "Integrity decay mechanic", "Cyber-terminal UI"],
-  },
-  {
-    id: "aether-descent",
-    title: "Aether Descent",
-    description:
-      "Physics-based precision lander with 12 planets, upgradeable probe, hazard systems, and endless mode. Land gently, collect shards, survive everything.",
-    status: "live",
-    tech: ["Phaser 3", "Matter.js", "Web Audio"],
-    links: [
-      { label: "Play", href: "/games/aether-descent/" },
+    highlight: "Freeplay benchmark · Ramp Up (Fibonacci-style block) · expanded lexicon",
+    controls: [
+      "Type the target word; auto-locks on full match",
+      "Freeplay: waves scale every 3 words; integrity drains over time",
+      "Ramp Up: full step visible as a block; type each word in sequence",
+      "ESC pause · Ramp Up needs a desktop keyboard",
     ],
-    highlight: "Live now · 12 planets · upgrades · endless mode",
-    controls: ["Arrow keys / WASD for thrust", "Land gently on platforms", "Collect energy shards"],
-    specs: ["12 unique planets", "Probe upgrade system", "Hazard & weather systems", "Endless survival mode"],
+    specs: [
+      "Dual mode: endless benchmark vs. 8-step ramp with on-screen word blocks",
+      "Per-step pools, timers, and narrative interstitials",
+      "Combo decay, accuracy tracking, local run history",
+    ],
   },
 ];

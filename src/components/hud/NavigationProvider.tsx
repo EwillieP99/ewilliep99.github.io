@@ -1,19 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { NAV_SECTIONS, type SectionId } from "@/data/navSections";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // NAVIGATION PROVIDER — Active section tracking via IntersectionObserver
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const NAV_SECTIONS = [
-  { id: "about", code: "01", label: "PROFILE" },
-  { id: "timeline", code: "02", label: "CHRONO LOG" },
-  { id: "augmentations", code: "03", label: "AUGMENTATIONS" },
-  { id: "projects", code: "04", label: "MISSION ARCHIVE" },
-  { id: "games", code: "05", label: "ARCADE" },
-  { id: "contact", code: "06", label: "UPLINK" },
-] as const;
-
-export type SectionId = (typeof NAV_SECTIONS)[number]["id"];
+export { NAV_SECTIONS, type SectionId, navCodename } from "@/data/navSections";
 
 interface NavigationContextValue {
   activeId: SectionId;
@@ -22,7 +14,7 @@ interface NavigationContextValue {
 }
 
 const NavigationContext = createContext<NavigationContextValue>({
-  activeId: "about",
+  activeId: "home",
   scrollTo: () => {},
   scrollProgress: 0,
 });
@@ -32,7 +24,7 @@ export function useNavigation() {
 }
 
 export function NavigationProvider({ children }: { children: ReactNode }) {
-  const [activeId, setActiveId] = useState<SectionId>("about");
+  const [activeId, setActiveId] = useState<SectionId>("home");
   const [scrollProgress, setScrollProgress] = useState(0);
 
   // IntersectionObserver for active section

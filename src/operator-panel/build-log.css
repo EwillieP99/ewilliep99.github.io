@@ -1,0 +1,53 @@
+/* Build Log — scoped theme (import only from operator panel entry) */
+
+.build-log-theme {
+  --bl-bg: #07080a;
+  --bl-canvas: #0b0d11;
+  --bl-sidebar: #090a0e;
+  --bl-card: #12151c;
+  --bl-line: rgba(255, 255, 255, 0.055);
+  --bl-line-strong: rgba(255, 255, 255, 0.1);
+  --bl-ink: #f1f2f6;
+  --bl-muted: #949aa8;
+  --bl-faint: #5e6472;
+  --bl-accent: #2ee6cf;
+  --bl-accent-soft: rgba(46, 230, 207, 0.12);
+  --bl-accent-dim: rgba(46, 230, 207, 0.55);
+  --bl-accent-violet: #9f7aea;
+  --bl-accent-violet-soft: rgba(159, 122, 234, 0.22);
+  font-family: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--bl-bg);
+  color: var(--bl-ink);
+}
+
+.build-log-theme .bl-display {
+  font-family: "Syne", "Outfit", ui-sans-serif, system-ui, sans-serif;
+}
+
+.build-log-theme .bl-mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@keyframes bl-pulse-bar {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleX(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes bl-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}

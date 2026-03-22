@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIGNAL BREACH — NEON OPERATOR TRAINING SIM</title>
+  <title>SIGNAL BREACH — NEON OPERATOR TRAINING SIM v1.6</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <style>
@@ -94,6 +94,24 @@
       letter-spacing: 0.25em;
     }
 
+    /* Ramp Up — full step visible as a paragraph; size scales down on huge steps */
+    .ramp-w-done {
+      color: #4ade80;
+      text-shadow: 0 0 8px rgba(74, 222, 128, 0.45);
+    }
+    .ramp-w-pending {
+      color: rgba(103, 232, 249, 0.3);
+    }
+    .ramp-w-current .char-pending { color: rgba(103, 232, 249, 0.55); }
+    .ramp-paragraph.ramp-s0 { font-size: clamp(1.85rem, 4.2vw, 3.1rem); letter-spacing: 0.14em; line-height: 1.2; }
+    .ramp-paragraph.ramp-s1 { font-size: clamp(1.65rem, 3.6vw, 2.65rem); letter-spacing: 0.12em; line-height: 1.22; }
+    .ramp-paragraph.ramp-s2 { font-size: clamp(1.45rem, 3vw, 2.2rem); letter-spacing: 0.1em; line-height: 1.25; }
+    .ramp-paragraph.ramp-s3 { font-size: clamp(1.2rem, 2.4vw, 1.85rem); letter-spacing: 0.08em; line-height: 1.28; }
+    .ramp-paragraph.ramp-s4 { font-size: clamp(1rem, 1.9vw, 1.5rem); letter-spacing: 0.07em; line-height: 1.32; }
+    .ramp-paragraph.ramp-s5 { font-size: clamp(0.88rem, 1.55vw, 1.25rem); letter-spacing: 0.055em; line-height: 1.35; }
+    .ramp-paragraph.ramp-s6 { font-size: clamp(0.72rem, 1.25vw, 1.05rem); letter-spacing: 0.045em; line-height: 1.38; }
+    .ramp-paragraph.ramp-s7 { font-size: clamp(0.58rem, 1.05vw, 0.88rem); letter-spacing: 0.035em; line-height: 1.42; }
+
     /* Typed display characters */
     .char-correct { color: #4ade80; text-shadow: 0 0 8px #4ade80; }
     .char-wrong   { color: #ef4444; text-shadow: 0 0 8px #ef4444; }
@@ -168,16 +186,16 @@
   <!-- ═══════════════════════════════════════════════════════
        MAIN GAME CONTAINER
        ═══════════════════════════════════════════════════════ -->
-  <div id="game-container" class="max-w-3xl w-full terminal rounded-xl overflow-hidden relative">
+  <div id="game-container" class="max-w-6xl w-full terminal rounded-xl overflow-hidden relative">
 
     <!-- ─── Title Bar ─── -->
     <div id="title-bar" class="bg-black border-b border-cyan-400 p-3 flex items-center justify-between text-xl">
       <div class="flex items-center gap-3">
         <span class="text-red-500 animate-pulse">●</span>
-        <span class="neon-cyan">SIGNAL BREACH v1.2</span>
+        <span class="neon-cyan">SIGNAL BREACH v1.6</span>
       </div>
-      <div class="flex gap-4 text-sm">
-        <span>WAVE <span id="wave" class="text-white">1</span></span>
+      <div class="flex flex-wrap gap-3 sm:gap-4 text-sm">
+        <span id="wave-row"><span id="wave-label">WAVE</span> <span id="wave" class="text-white">1</span></span>
         <span>SCORE <span id="score" class="text-white">00000</span></span>
         <span>ACC <span id="accuracy" class="text-white">100</span>%</span>
         <span>COMBO <span id="combo" class="text-white">x1.0</span></span>
@@ -188,69 +206,127 @@
     </div>
 
     <!-- ─── Game Area ─── -->
-    <div id="game-area" class="scanlines p-8 bg-black/90 min-h-[420px] flex flex-col">
+    <div id="game-area" class="scanlines p-6 sm:p-8 bg-black/90 min-h-[440px] lg:min-h-[500px] flex flex-col gap-4">
 
-      <!-- Integrity -->
-      <div id="status" class="text-center mb-4 text-xl tracking-widest">
+      <div id="status" class="text-center text-xl tracking-widest shrink-0">
         CORE INTEGRITY: <span id="integrity" class="text-green-400">100</span>%
       </div>
 
-      <!-- Target Word -->
-      <div id="target-word" class="text-center min-h-[100px] flex items-center justify-center mb-4 font-mono tracking-widest neon-cyan"></div>
+      <div class="flex flex-col lg:flex-row lg:gap-10 lg:items-start flex-1 min-h-0">
+        <!-- Playfield -->
+        <div class="flex-1 min-w-0 flex flex-col gap-3 lg:gap-4 order-2 lg:order-1">
+          <div id="ramp-banner" class="hidden text-center lg:text-left text-base sm:text-lg text-pink-400 font-mono tracking-wide px-1"></div>
+          <div id="ramp-paragraph-wrap" class="hidden w-full max-h-[min(52vh,28rem)] overflow-y-auto pr-1">
+            <p class="text-[10px] uppercase tracking-widest text-cyan-500/45 font-mono mb-2">Transmission block — type each lock in order</p>
+            <div id="ramp-paragraph" class="ramp-paragraph font-mono text-left break-words rounded border border-cyan-500/15 bg-black/35 p-3 sm:p-4"></div>
+          </div>
+          <div id="target-word" class="text-center lg:text-left min-h-[96px] lg:min-h-[120px] flex items-center justify-center lg:justify-start font-mono tracking-widest neon-cyan break-all"></div>
+          <div id="typed-display" class="text-center lg:text-left min-h-[52px] lg:min-h-[60px] flex items-center justify-center lg:justify-start text-3xl sm:text-4xl font-mono tracking-widest"></div>
+          <div id="feedback" class="text-center lg:text-left text-xl min-h-8"></div>
+        </div>
 
-      <!-- Typed Display (green/red feedback) -->
-      <div id="typed-display" class="text-center min-h-[60px] flex items-center justify-center text-4xl font-mono tracking-widest mb-4"></div>
+        <!-- Side HUD -->
+        <aside class="w-full lg:w-[min(100%,18.5rem)] shrink-0 flex flex-col gap-4 order-1 lg:order-2 lg:border-l lg:border-cyan-500/15 lg:pl-8">
+          <div id="sector-progress" class="hidden rounded border border-cyan-500/25 bg-black/50 p-3">
+            <div class="text-[11px] text-pink-400/90 font-mono tracking-wider mb-2">STEP PROGRESS</div>
+            <div class="h-2.5 bg-gray-900 rounded overflow-hidden border border-cyan-500/35">
+              <div id="sector-progress-bar" class="h-full bg-gradient-to-r from-cyan-600 to-pink-500 transition-[width] duration-300 ease-out" style="width:0%"></div>
+            </div>
+            <div id="sector-progress-text" class="text-sm text-cyan-300/90 mt-2 font-mono text-center tabular-nums">0 / 0</div>
+          </div>
+          <div id="word-timer-row" class="hidden w-full">
+            <div class="flex justify-between text-sm text-pink-400/90 mb-1 font-mono">
+              <span>BREACH WINDOW</span>
+              <span id="word-timer-text">—</span>
+            </div>
+            <div class="h-2.5 bg-gray-900 rounded overflow-hidden border border-pink-500/30">
+              <div id="word-timer-bar" class="h-full bg-gradient-to-r from-pink-500 to-fuchsia-400 transition-[width] duration-75 linear" style="width:100%"></div>
+            </div>
+          </div>
+          <p id="freeplay-aside-hint" class="hidden text-center lg:text-left text-cyan-400/45 text-xs font-mono leading-relaxed">
+            FREEPLAY · Waves climb every 3 clears. Combo decays after idle.
+          </p>
+        </aside>
+      </div>
 
-      <!-- Hidden Input -->
       <input id="hidden-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"
              class="absolute opacity-0 pointer-events-none" style="top:-9999px">
 
-      <!-- Feedback -->
-      <div id="feedback" class="text-center mt-2 text-xl h-8"></div>
-
-      <!-- Hint -->
-      <div id="hint-bar" class="text-center mt-2 text-cyan-400/60 text-sm">
+      <div id="hint-bar" class="text-center text-cyan-400/60 text-sm shrink-0 lg:hidden">
         TYPE TO DECODE • ESC TO PAUSE
+      </div>
+      <p id="hint-bar-desktop" class="hidden lg:block text-center text-cyan-400/45 text-xs font-mono shrink-0">
+        TYPE TO DECODE · ESC TO PAUSE
+      </p>
+    </div>
+
+    <!-- ─── Mode select ─── -->
+    <div id="mode-bar" class="bg-black p-4 border-t border-cyan-400">
+      <p class="text-center text-cyan-400/60 text-sm font-mono mb-3">SELECT OPERATION</p>
+      <div class="grid sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
+        <button type="button" onclick="beginMode('freeplay')"
+                class="neon-magenta px-5 py-4 text-xl border-2 border-pink-500 hover:border-white transition-all active:scale-95 text-left">
+          <span class="block text-xs text-pink-300/90 font-mono tracking-wider mb-1">ENDLESS · HIGH SCORE</span>
+          FREEPLAY
+        </button>
+        <button type="button" onclick="beginMode('rampup')"
+                class="px-5 py-4 text-xl border-2 border-cyan-400 text-cyan-300 hover:bg-cyan-400/10 transition-all active:scale-95 text-left">
+          <span class="block text-xs text-cyan-400/70 font-mono tracking-wider mb-1">8 STEPS · 1→50 WORDS · FULL BLOCK ON SCREEN</span>
+          RAMP UP
+        </button>
       </div>
     </div>
 
-    <!-- ─── Start Button ─── -->
-    <div class="bg-black p-4 flex justify-center gap-4 border-t border-cyan-400">
-      <button onclick="startGame()" id="start-btn"
-              class="neon-magenta px-10 py-4 text-2xl border-2 border-pink-500 hover:border-white transition-all active:scale-95">
-        INITIALIZE BREACH
-      </button>
-    </div>
-
     <!-- ─── Game Over Overlay ─── -->
-    <div id="game-over" class="hidden absolute inset-0 bg-black/90 flex items-center justify-center flex-col z-30">
+    <div id="game-over" class="hidden absolute inset-0 bg-black/95 flex items-center justify-center flex-col z-[32]">
       <div class="text-5xl neon-cyan mb-4">BREACH CONTAINED</div>
       <div id="final-score" class="text-3xl mb-8 text-center"></div>
-      <button onclick="restartGame()"
+      <button type="button" onclick="restartGame()"
               class="px-8 py-4 text-2xl border border-cyan-400 hover:bg-cyan-400/20 transition-all">
         REBOOT SYSTEM
       </button>
     </div>
 
+    <div id="sector-clear-overlay" class="hidden absolute inset-0 bg-black flex items-center justify-center flex-col z-[44] p-6 sm:p-10 text-center pointer-events-auto">
+      <div id="sector-clear-title" class="text-3xl sm:text-4xl text-pink-400 mb-3 font-mono"></div>
+      <p id="sector-clear-story" class="text-cyan-400/85 max-w-xl text-base sm:text-lg mb-8 leading-relaxed"></p>
+      <button type="button" onclick="advanceRampFromOverlay()"
+              class="px-8 py-3 text-xl border-2 border-cyan-400 text-cyan-300 hover:bg-cyan-400/15 transition-all">
+        NEXT STEP
+      </button>
+    </div>
+
+    <div id="ramp-victory-overlay" class="hidden absolute inset-0 bg-black flex items-center justify-center flex-col z-[46] p-6">
+      <div class="text-4xl sm:text-5xl neon-green mb-4 text-center">NETWORK BREACHED</div>
+      <p class="text-cyan-400/80 text-center max-w-md mb-2">The arc is complete. Core uplink is yours—until the next rotation.</p>
+      <p id="victory-stats" class="text-xl text-white mb-8 font-mono"></p>
+      <button type="button" onclick="closeVictory()"
+              class="px-8 py-4 text-xl border border-green-400 text-green-400 hover:bg-green-400/15 transition-all">
+        RETURN TO MENU
+      </button>
+    </div>
+
     <!-- ─── Instructions Overlay ─── -->
-    <div id="instructions-overlay" class="hidden absolute inset-0 bg-black/95 flex items-center justify-center flex-col z-40 p-8">
-      <div class="text-4xl neon-cyan mb-6">SIGNAL BREACH v1.2</div>
+    <div id="instructions-overlay" class="hidden absolute inset-0 bg-black/95 flex items-center justify-center flex-col z-[48] p-8">
+      <div class="text-4xl neon-cyan mb-6">SIGNAL BREACH v1.6</div>
       <div class="text-xl text-cyan-400/80 text-center space-y-3 max-w-md">
         <p class="text-green-400 text-2xl mb-4">// MISSION BRIEF //</p>
         <p>Intercept corrupted signals by typing the target word.</p>
         <p>Characters light <span class="text-green-400">GREEN</span> when correct, <span class="text-red-500">RED</span> when wrong.</p>
         <p>Word auto-completes on final correct character.</p>
-        <p>Maintain CORE INTEGRITY — it drains every second.</p>
-        <p class="text-pink-400 mt-4">Press ESC to pause. Combo multiplier increases with consecutive hits.</p>
+        <p>Maintain CORE INTEGRITY — it drains over time (lighter in Ramp Up).</p>
+        <p class="text-pink-400"><strong class="text-white">Ramp Up:</strong> 8 steps with <strong class="text-white">1 · 3 · 5 · 8 · 13 · 21 · 34 · 50</strong> words. The whole step appears as one <strong class="text-white">transmission block</strong> (a paragraph). Type each word in order—no pauses between locks.</p>
+        <p class="text-pink-400/90 text-base">Each word has a <strong class="text-white">breach window</strong>. Later steps use smaller type so the block fits.</p>
+        <p class="text-pink-400 mt-4">Press ESC to pause. Combo multiplier increases with consecutive hits (Freeplay).</p>
       </div>
       <div id="instructions-countdown" class="text-3xl mt-6 neon-magenta"></div>
     </div>
 
     <!-- ─── Pause Menu Overlay ─── -->
-    <div id="pause-menu" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center flex-col z-40"
+    <div id="pause-menu" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center flex-col z-[50]"
          style="backdrop-filter: blur(2px);">
       <div class="text-5xl neon-cyan mb-2">SYSTEM PAUSED</div>
-      <div class="text-cyan-400/50 text-lg mb-6">// SIGNAL BREACH v1.2 //</div>
+      <div class="text-cyan-400/50 text-lg mb-6">// SIGNAL BREACH v1.6 //</div>
 
       <!-- Wave goal hint -->
       <div id="pause-wave-goal" class="text-pink-400 text-xl mb-8 text-center"></div>
@@ -274,8 +350,7 @@
     </div>
 
     <!-- ─── Resume Countdown Overlay ─── -->
-    <div id="resume-countdown" class="hidden absolute inset-0 bg-black/85 flex items-center justify-center flex-col z-45"
-         style="z-index: 45;">
+    <div id="resume-countdown" class="hidden absolute inset-0 bg-black/85 flex items-center justify-center flex-col z-[55]">
       <div id="resume-countdown-text" class="text-7xl neon-cyan"></div>
       <div class="text-cyan-400/60 text-xl mt-4">GET READY</div>
     </div>
@@ -293,20 +368,46 @@
       short: [
         "NEON", "GLITCH", "PULSE", "ECHO", "VOID", "CORE", "GRID", "BYTE", "NODE", "ROOT",
         "HACK", "CODE", "SCAN", "LOCK", "DROP", "GHOST", "BLADE", "FROST", "SPIKE", "FLUX",
-        "ARC", "RAZOR", "PORT", "LINK", "FIRE", "WAVE", "NOISE", "STATIC", "PIXEL", "CACHE"
+        "ARC", "RAZOR", "PORT", "LINK", "FIRE", "WAVE", "NOISE", "STATIC", "PIXEL", "CACHE",
+        "SIGNAL", "DRIFT", "SHIFT", "TRACE", "VAULT", "CIPHER", "STORM", "SHARD", "RIDGE", "RUNE",
+        "FLASH", "BURST", "CIRCUIT", "FRAME", "LOGIC", "GUARD", "SHELL", "WRAP", "ZONE", "DRONE"
       ],
       medium: [
         "PHANTOM", "SPECTRE", "CYPHER", "MATRIX", "QUANTUM", "NEURAL", "VECTOR", "SYNTH",
         "CHROME", "LASER", "PACKET", "PROXY", "DAEMON", "CIRCUIT", "KERNEL", "SOCKET",
-        "THREAD", "NEXUS", "ORBITAL", "VORTEX", "PLASMA", "HOLO", "RELAY", "FUSION", "ABYSS"
+        "THREAD", "NEXUS", "ORBITAL", "VORTEX", "PLASMA", "HOLO", "RELAY", "FUSION", "ABYSS",
+        "OVERCLOCK", "DATAMINE", "NETRUN", "FIRECODE", "ICEPICK", "NULLNET", "SKYPORT", "DEEPWEB",
+        "CRYOSTACK", "MEMCORE", "SIGINT", "WARPDRIVE", "TACHYON", "HYPERLANE", "BLACKBOX", "KEYLINE",
+        "ROUTER", "SUBNET", "MAINFRAME", "BACKDOOR", "SIDECHAN", "TIMESTAMP", "CHECKSUM", "HANDSHAKE"
       ],
       long: [
         "BREACH", "FIREWALL", "PROTOCOL", "DECRYPT", "OVERLOAD", "OPERATOR", "INTEGRITY",
         "FREQUENCY", "SPECTRUM", "TERMINAL", "OVERRIDE", "UPLINK", "PULSECORE", "WAVEFRONT",
         "NEUROLINK", "DARKNET", "CYBERSPACE", "ENCRYPTED", "CLASSIFIED", "REBOOT", "QUANTUMFLUX",
-        "SHADOWRUN", "VOIDWALKER", "SIGNALGHOST", "NEONBLADE", "MATRIXBREAK", "AIOVERLORD"
+        "SHADOWRUN", "VOIDWALKER", "SIGNALGHOST", "NEONBLADE", "MATRIXBREAK", "AIOVERLORD",
+        "NEURALBREACH", "CRYPTOSHIELD", "PHASESHIFT", "OMNINET", "STEALTHLINK", "GHOSTPROTOCOL",
+        "BLACKICE", "ICEWALL", "NETSPHERE", "DATASTORM", "SILENTRUN", "WRAITHCODE", "ZEROHOUR",
+        "SYSTEMPURGE", "DEADHAND", "FARADAYCAGE", "QUANTUMKEY", "SINGULARITY"
       ]
     };
+
+    /** Words per step: 1, 3, 5, 8, 13, 21, 34, 50 */
+    const RAMP_STEP_WORD_COUNTS = [1, 3, 5, 8, 13, 21, 34, 50];
+
+    const RAMP_LEVELS = [
+      { title: "STEP 01 — PING", story: "A single authentic tone cuts through the noise. Prove you can hear it.", secPerWord: 14, pool: "short" },
+      { title: "STEP 02 — TRIPLET", story: "Three locks chain in sequence—no gaps, just the next vector.", secPerWord: 12, pool: "shortMedium" },
+      { title: "STEP 03 — QUINT", story: "Five words, one block. Your eyes read ahead while your hands stay honest.", secPerWord: 10, pool: "shortMedium" },
+      { title: "STEP 04 — OCTET", story: "Eight fragments assemble into a coherent burst. Don't lose the thread.", secPerWord: 9, pool: "medium" },
+      { title: "STEP 05 — CASCADE", story: "Thirteen signals stack like a Fibonacci surge. Pace yourself.", secPerWord: 7.5, pool: "medium" },
+      { title: "STEP 06 — FLOOD", story: "Twenty-one words on screen at once—this is a paragraph, not a duel.", secPerWord: 6.5, pool: "mediumLong" },
+      { title: "STEP 07 — WALL", story: "Thirty-four locks in one transmission. Smaller type, same discipline.", secPerWord: 5.8, pool: "mediumLong" },
+      { title: "STEP 08 — MANIFEST", story: "Fifty words—the full manifest. Clear it or the uplink never opens.", secPerWord: 5.2, pool: "mixed" }
+    ];
+
+    function rampSectorWordGoal(levelIndex) {
+      return RAMP_STEP_WORD_COUNTS[levelIndex] ?? 1;
+    }
 
     /* ─────────────────────────────────────────────────────
        STATE
@@ -329,6 +430,14 @@
     let combo = 1;
     let highScore = 0;
     let lastSuccessTime = 0;
+
+    let gameMode = null;
+    let rampSectorIndex = 0;
+    let rampWordsDone = 0;
+    let wordTimerRaf = null;
+    let wordDeadlineMs = 0;
+    let rampScore = 0;
+    let rampStepWords = [];
 
     // Track recent words to avoid repeats
     let recentWords = [];
@@ -356,6 +465,23 @@
     const resumeCountdownText = document.getElementById('resume-countdown-text');
     const pauseWaveGoal     = document.getElementById('pause-wave-goal');
     const titleBar          = document.getElementById('title-bar');
+    const modeBar           = document.getElementById('mode-bar');
+    const waveLabelEl       = document.getElementById('wave-label');
+    const rampBannerEl      = document.getElementById('ramp-banner');
+    const wordTimerRow      = document.getElementById('word-timer-row');
+    const wordTimerBar      = document.getElementById('word-timer-bar');
+    const wordTimerText     = document.getElementById('word-timer-text');
+    const sectorClearOverlay = document.getElementById('sector-clear-overlay');
+    const sectorClearTitle  = document.getElementById('sector-clear-title');
+    const sectorClearStory  = document.getElementById('sector-clear-story');
+    const rampVictoryEl     = document.getElementById('ramp-victory-overlay');
+    const victoryStats      = document.getElementById('victory-stats');
+    const sectorProgressWrap = document.getElementById('sector-progress');
+    const sectorProgressBar = document.getElementById('sector-progress-bar');
+    const sectorProgressText = document.getElementById('sector-progress-text');
+    const freeplayAsideHint = document.getElementById('freeplay-aside-hint');
+    const rampParagraphWrap = document.getElementById('ramp-paragraph-wrap');
+    const rampParagraphEl = document.getElementById('ramp-paragraph');
 
     /* ─────────────────────────────────────────────────────
        AUDIO (Web Audio API beeps)
@@ -392,55 +518,288 @@
     /* ─────────────────────────────────────────────────────
        WORD SELECTION
        ───────────────────────────────────────────────────── */
-    function selectWordForWave() {
-      let pool;
-      if (wave <= 3) {
-        pool = WORD_POOL.short;
-      } else if (wave <= 7) {
-        // medium + occasional short
-        pool = Math.random() < 0.2 ? WORD_POOL.short : WORD_POOL.medium;
-      } else {
-        // long + occasional medium
-        pool = Math.random() < 0.25 ? WORD_POOL.medium : WORD_POOL.long;
-      }
-
+    function pickAvoidingRecent(pool) {
       let word;
       let attempts = 0;
       do {
         word = pool[Math.floor(Math.random() * pool.length)];
         attempts++;
-      } while (recentWords.includes(word) && attempts < 20);
-
+      } while (recentWords.includes(word) && attempts < 28);
       recentWords.push(word);
-      if (recentWords.length > 6) recentWords.shift();
-
+      if (recentWords.length > 8) recentWords.shift();
       return word;
+    }
+
+    function selectWordForWave() {
+      let pool;
+      if (wave <= 3) {
+        pool = WORD_POOL.short;
+      } else if (wave <= 7) {
+        pool = Math.random() < 0.22 ? WORD_POOL.short : WORD_POOL.medium;
+      } else {
+        pool = Math.random() < 0.28 ? WORD_POOL.medium : WORD_POOL.long;
+      }
+      return pickAvoidingRecent(pool);
+    }
+
+    function poolForRampType(t) {
+      if (t === "short") return WORD_POOL.short;
+      if (t === "medium") return WORD_POOL.medium;
+      if (t === "long") return WORD_POOL.long;
+      if (t === "shortMedium") return Math.random() < 0.52 ? WORD_POOL.short : WORD_POOL.medium;
+      if (t === "mediumLong") return Math.random() < 0.42 ? WORD_POOL.medium : WORD_POOL.long;
+      if (t === "mixed") {
+        const r = Math.random();
+        if (r < 0.22) return WORD_POOL.short;
+        if (r < 0.58) return WORD_POOL.medium;
+        return WORD_POOL.long;
+      }
+      return WORD_POOL.medium;
+    }
+
+    function pickFromPoolExcluding(pool, excludeList) {
+      let word;
+      let attempts = 0;
+      do {
+        word = pool[Math.floor(Math.random() * pool.length)];
+        attempts++;
+      } while ((recentWords.includes(word) || excludeList.includes(word)) && attempts < 80);
+      recentWords.push(word);
+      if (recentWords.length > 28) recentWords.shift();
+      return word;
+    }
+
+    function buildRampStepWordList() {
+      const L = RAMP_LEVELS[rampSectorIndex];
+      const n = rampSectorWordGoal(rampSectorIndex);
+      const list = [];
+      for (let i = 0; i < n; i++) {
+        const pool = poolForRampType(L.pool);
+        list.push(pickFromPoolExcluding(pool, list));
+      }
+      return list;
+    }
+
+    function ensureRampStepBuilt() {
+      const n = rampSectorWordGoal(rampSectorIndex);
+      if (rampStepWords.length !== n) {
+        rampStepWords = buildRampStepWordList();
+        rampWordsDone = 0;
+      }
+    }
+
+    function clearWordTimerLoop() {
+      if (wordTimerRaf) {
+        cancelAnimationFrame(wordTimerRaf);
+        wordTimerRaf = null;
+      }
+    }
+
+    function updateWaveLabelUI() {
+      if (gameMode === "rampup") {
+        waveLabelEl.textContent = "STEP";
+        waveEl.textContent = (rampSectorIndex + 1) + "/" + RAMP_LEVELS.length;
+      } else {
+        waveLabelEl.textContent = "WAVE";
+        waveEl.textContent = wave;
+      }
+    }
+
+    function clearPlayfieldForInterstitial() {
+      currentWord = "";
+      typed = "";
+      hiddenInput.value = "";
+      targetWordEl.innerHTML = "";
+      typedDisplayEl.innerHTML = "";
+      rampStepWords = [];
+      rampParagraphEl.innerHTML = "";
+      rampParagraphWrap.classList.add("hidden");
+      targetWordEl.classList.remove("hidden");
+      feedback.textContent = "";
+      feedback.className = "text-center lg:text-left text-xl min-h-8";
+    }
+
+    function applyRampParagraphSize() {
+      rampParagraphEl.className =
+        "ramp-paragraph font-mono text-left break-words rounded border border-cyan-500/15 bg-black/35 p-3 sm:p-4 ramp-s" +
+        rampSectorIndex;
+    }
+
+    function rampParagraphHTML() {
+      const cw = rampWordsDone;
+      let html = "";
+      for (let i = 0; i < rampStepWords.length; i++) {
+        const w = rampStepWords[i];
+        if (i < cw) {
+          html += `<span class="ramp-w-done inline-block mr-2 sm:mr-3 mb-1 align-baseline">${w}</span>`;
+        } else if (i === cw) {
+          let inner = "";
+          for (let j = 0; j < w.length; j++) {
+            const ch = w[j];
+            let cls = "char-pending";
+            if (j < typed.length) cls = typed[j] === ch ? "char-correct" : "char-wrong";
+            else if (j === typed.length) cls = "char-pending char-cursor";
+            inner += `<span class="${cls}">${ch}</span>`;
+          }
+          html += `<span id="ramp-current-word" class="ramp-w-current inline-block mr-2 sm:mr-3 mb-1 align-baseline neon-cyan">${inner}</span>`;
+        } else {
+          html += `<span class="ramp-w-pending inline-block mr-2 sm:mr-3 mb-1 align-baseline">${w}</span>`;
+        }
+      }
+      return html;
+    }
+
+    function getActiveWordRect() {
+      if (gameMode === "rampup") {
+        const el = document.getElementById("ramp-current-word");
+        if (el) return el.getBoundingClientRect();
+      }
+      return targetWordEl.getBoundingClientRect();
+    }
+
+    function updateRampHud() {
+      const showHud = gameMode === "rampup" && gameRunning && !resuming;
+      if (showHud) {
+        sectorProgressWrap.classList.remove("hidden");
+        freeplayAsideHint.classList.add("hidden");
+        const need = rampSectorWordGoal(rampSectorIndex);
+        const pct = need ? Math.min(100, (rampWordsDone / need) * 100) : 0;
+        sectorProgressBar.style.width = pct + "%";
+        sectorProgressText.textContent = rampWordsDone + " / " + need + " WORDS";
+      } else {
+        sectorProgressWrap.classList.add("hidden");
+        const showFreeAside = gameMode === "freeplay" && gameRunning && !resuming;
+        freeplayAsideHint.classList.toggle("hidden", !showFreeAside);
+      }
+    }
+
+    function tickWordTimer() {
+      if (!gameRunning || paused || resuming || gameMode !== "rampup") {
+        wordTimerRaf = requestAnimationFrame(tickWordTimer);
+        return;
+      }
+      const L = RAMP_LEVELS[rampSectorIndex];
+      const total = L.secPerWord * 1000;
+      const left = Math.max(0, wordDeadlineMs - Date.now());
+      const pct = Math.min(100, (left / total) * 100);
+      wordTimerBar.style.width = pct + "%";
+      wordTimerText.textContent = (left / 1000).toFixed(1) + "s";
+      if (left <= 0) {
+        clearWordTimerLoop();
+        handleRampWordTimeout();
+        return;
+      }
+      wordTimerRaf = requestAnimationFrame(tickWordTimer);
+    }
+
+    function startRampWordTimer() {
+      clearWordTimerLoop();
+      const L = RAMP_LEVELS[rampSectorIndex];
+      wordDeadlineMs = Date.now() + L.secPerWord * 1000;
+      wordTimerBar.style.width = "100%";
+      wordTimerRaf = requestAnimationFrame(tickWordTimer);
+    }
+
+    function handleRampWordTimeout() {
+      combo = 1;
+      integrity = Math.max(0, integrity - 18);
+      sfxMistake();
+      feedback.textContent = "BREACH WINDOW CLOSED";
+      feedback.className = "text-red-500 text-2xl";
+      gameContainer.classList.remove("flash-success", "flash-fail");
+      void gameContainer.offsetWidth;
+      gameContainer.classList.add("flash-fail");
+      updateStats();
+      if (integrity <= 0) {
+        endGame();
+        return;
+      }
+      setTimeout(() => {
+        if (!gameRunning) return;
+        if (gameMode === "rampup") {
+          typed = "";
+          hiddenInput.value = "";
+          updateTypedDisplay();
+          startRampWordTimer();
+          hiddenInput.focus();
+        } else {
+          nextWord();
+        }
+      }, 450);
+    }
+
+    function beginMode(mode) {
+      gameMode = mode;
+      showInstructions(() => startGameCore());
+    }
+
+    function showRampBanner() {
+      const L = RAMP_LEVELS[rampSectorIndex];
+      rampBannerEl.textContent = L.title;
+      rampBannerEl.classList.remove("hidden");
+    }
+
+    function advanceRampFromOverlay() {
+      sectorClearOverlay.classList.add("hidden");
+      rampSectorIndex++;
+      rampWordsDone = 0;
+      rampStepWords = [];
+      gameRunning = true;
+      clearPlayfieldForInterstitial();
+      showRampBanner();
+      updateWaveLabelUI();
+      updateRampHud();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          hiddenInput.focus();
+          nextWord();
+          startDrain();
+        });
+      });
+    }
+
+    function closeVictory() {
+      rampVictoryEl.classList.add("hidden");
+      restartGame();
     }
 
     /* ─────────────────────────────────────────────────────
        DISPLAY: TARGET WORD + TYPED FEEDBACK
        ───────────────────────────────────────────────────── */
     function updateTypedDisplay() {
-      let html = '';
+      if (gameMode === "rampup" && rampStepWords.length > 0) {
+        rampParagraphWrap.classList.remove("hidden");
+        targetWordEl.classList.add("hidden");
+        applyRampParagraphSize();
+        rampParagraphEl.innerHTML = rampParagraphHTML();
+
+        typedDisplayEl.innerHTML =
+          '<span class="text-cyan-500/40 text-xs font-mono">Type into the highlighted lock in the block above.</span>';
+        return;
+      }
+
+      rampParagraphWrap.classList.add("hidden");
+      targetWordEl.classList.remove("hidden");
+
+      let html = "";
       for (let i = 0; i < currentWord.length; i++) {
         const char = currentWord[i];
-        let cls = 'char-pending';
+        let cls = "char-pending";
 
         if (i < typed.length) {
-          cls = (typed[i] === char) ? 'char-correct' : 'char-wrong';
+          cls = typed[i] === char ? "char-correct" : "char-wrong";
         } else if (i === typed.length) {
-          cls = 'char-pending char-cursor';
+          cls = "char-pending char-cursor";
         }
 
         html += `<span class="${cls}">${char}</span>`;
       }
       targetWordEl.innerHTML = html;
 
-      // Show what player has typed below
-      let typedHtml = '';
+      let typedHtml = "";
       for (let i = 0; i < typed.length; i++) {
         const correct = i < currentWord.length && typed[i] === currentWord[i];
-        typedHtml += `<span class="${correct ? 'char-correct' : 'char-wrong'}">${typed[i]}</span>`;
+        typedHtml += `<span class="${correct ? "char-correct" : "char-wrong"}">${typed[i]}</span>`;
       }
       if (gameRunning && !paused && !resuming) {
         typedHtml += '<span class="text-cyan-400 animate-pulse">_</span>';
@@ -453,7 +812,7 @@
        ───────────────────────────────────────────────────── */
     function updateStats() {
       scoreEl.textContent = String(Math.floor(score)).padStart(5, '0');
-      waveEl.textContent = wave;
+      updateWaveLabelUI();
       integrityEl.textContent = Math.max(0, Math.floor(integrity));
       accuracyEl.textContent = Math.max(0, Math.floor(accuracy));
       comboEl.textContent = `x${combo.toFixed(1)}`;
@@ -477,7 +836,7 @@
        PARTICLES
        ───────────────────────────────────────────────────── */
     function spawnParticles(color) {
-      const rect = targetWordEl.getBoundingClientRect();
+      const rect = getActiveWordRect();
       const containerRect = gameContainer.getBoundingClientRect();
       const cx = rect.left + rect.width / 2 - containerRect.left;
       const cy = rect.top + rect.height / 2 - containerRect.top;
@@ -506,7 +865,7 @@
       const pop = document.createElement('div');
       pop.className = 'score-pop neon-green';
       pop.textContent = `+${Math.floor(points)}`;
-      const rect = targetWordEl.getBoundingClientRect();
+      const rect = getActiveWordRect();
       const containerRect = gameContainer.getBoundingClientRect();
       pop.style.left = (rect.left + rect.width / 2 - containerRect.left - 30) + 'px';
       pop.style.top  = (rect.top - containerRect.top - 10) + 'px';
@@ -519,60 +878,108 @@
        ───────────────────────────────────────────────────── */
     function handleSuccess() {
       wordsCleared++;
-      combo = Math.min(5, combo + 0.3);
       lastSuccessTime = Date.now();
 
-      // Score: shorter time bonus + wave bonus * combo
-      const bonus = Math.max(50, 300 - (currentWord.length * 5));
-      const gained = (bonus + (wave * 20)) * combo;
+      if (gameMode === "rampup") {
+        clearWordTimerLoop();
+        const L = RAMP_LEVELS[rampSectorIndex];
+        const bonus = Math.max(45, 260 - currentWord.length * 5);
+        const gained = bonus * (1 + rampSectorIndex * 0.12);
+        rampScore += gained;
+        score = rampScore;
+
+        sfxSuccess();
+        spawnParticles("#4ade80");
+        showScorePop(gained);
+        gameContainer.classList.remove("flash-success", "flash-fail");
+        void gameContainer.offsetWidth;
+        gameContainer.classList.add("flash-success");
+
+        rampWordsDone++;
+        if (rampWordsDone >= rampSectorWordGoal(rampSectorIndex)) {
+          rampStepWords = [];
+          cleanupTimers();
+          hiddenInput.blur();
+          clearPlayfieldForInterstitial();
+          updateRampHud();
+          if (rampSectorIndex >= RAMP_LEVELS.length - 1) {
+            gameRunning = false;
+            clearWordTimerLoop();
+            updateRampHud();
+            rampVictoryEl.classList.remove("hidden");
+            victoryStats.textContent =
+              "SCORE " + Math.floor(rampScore) + " · ACC " + Math.floor(accuracy) + "%";
+            return;
+          }
+          sectorClearTitle.textContent = "STEP CLEARED";
+          sectorClearStory.textContent = L.story;
+          sectorClearOverlay.classList.remove("hidden");
+          gameRunning = false;
+          return;
+        }
+
+        currentWord = rampStepWords[rampWordsDone];
+        typed = "";
+        hiddenInput.value = "";
+        feedback.textContent = "SIGNAL PURGED +" + Math.floor(gained);
+        feedback.className = "text-green-400 text-2xl";
+        updateStats();
+        updateWaveLabelUI();
+        updateTypedDisplay();
+        updateRampHud();
+        startRampWordTimer();
+        hiddenInput.focus();
+        return;
+      }
+
+      combo = Math.min(5, combo + 0.3);
+
+      const bonus = Math.max(50, 300 - currentWord.length * 5);
+      const gained = (bonus + wave * 20) * combo;
       score += gained;
 
-      // Wave progression: every 3 words cleared
       const nextWave = Math.floor(wordsCleared / 3) + 1;
       const leveledUp = nextWave > wave;
       wave = nextWave;
 
       sfxSuccess();
-      spawnParticles('#4ade80');
+      spawnParticles("#4ade80");
       showScorePop(gained);
 
-      // Flash terminal green
-      gameContainer.classList.remove('flash-success', 'flash-fail');
+      gameContainer.classList.remove("flash-success", "flash-fail");
       void gameContainer.offsetWidth;
-      gameContainer.classList.add('flash-success');
+      gameContainer.classList.add("flash-success");
 
       if (leveledUp) {
         integrity = Math.min(100, integrity + 8);
-        feedback.textContent = `WAVE ${wave} ONLINE`;
+        feedback.textContent = "WAVE " + wave + " ONLINE";
         feedback.className = "text-pink-400 text-2xl animate-pulse";
         sfxWaveUp();
       } else {
-        feedback.textContent = `SIGNAL PURGED +${Math.floor(gained)}`;
+        feedback.textContent = "SIGNAL PURGED +" + Math.floor(gained);
         feedback.className = "text-green-400 text-2xl";
       }
 
       updateStats();
+      updateWaveLabelUI();
       resetComboDecay();
-
-      // Next word instantly
       nextWord();
     }
 
     function handleMistake() {
       combo = 1;
+      if (gameMode === "rampup") clearWordTimerLoop();
       integrity = Math.max(0, integrity - 5);
       sfxMistake();
 
-      // Flash terminal red
-      gameContainer.classList.remove('flash-success', 'flash-fail');
+      gameContainer.classList.remove("flash-success", "flash-fail");
       void gameContainer.offsetWidth;
-      gameContainer.classList.add('flash-fail');
+      gameContainer.classList.add("flash-fail");
 
-      // Screen shake
-      gameArea.classList.add('screen-shake');
-      setTimeout(() => gameArea.classList.remove('screen-shake'), 150);
+      gameArea.classList.add("screen-shake");
+      setTimeout(() => gameArea.classList.remove("screen-shake"), 150);
 
-      spawnParticles('#ef4444');
+      spawnParticles("#ef4444");
       feedback.textContent = "SIGNAL CORRUPTED";
       feedback.className = "text-red-500 text-2xl";
 
@@ -583,10 +990,17 @@
         return;
       }
 
-      // Give new word after mistake on Enter
       setTimeout(() => {
         if (!gameRunning) return;
-        nextWord();
+        if (gameMode === "rampup") {
+          typed = "";
+          hiddenInput.value = "";
+          updateTypedDisplay();
+          startRampWordTimer();
+          hiddenInput.focus();
+        } else {
+          nextWord();
+        }
       }, 400);
     }
 
@@ -608,6 +1022,22 @@
        NEXT WORD
        ───────────────────────────────────────────────────── */
     function nextWord() {
+      if (gameMode === "rampup") {
+        ensureRampStepBuilt();
+        currentWord = rampStepWords[rampWordsDone];
+        typed = "";
+        hiddenInput.value = "";
+        applyRampParagraphSize();
+        updateTypedDisplay();
+        feedback.textContent = "TYPE TO DECODE";
+        feedback.className = "text-cyan-400 text-xl";
+        hiddenInput.focus();
+        updateWaveLabelUI();
+        updateRampHud();
+        startRampWordTimer();
+        return;
+      }
+
       currentWord = selectWordForWave();
       typed = "";
       hiddenInput.value = "";
@@ -615,6 +1045,9 @@
       feedback.textContent = "TYPE TO DECODE";
       feedback.className = "text-cyan-400 text-xl";
       hiddenInput.focus();
+      updateWaveLabelUI();
+      updateRampHud();
+      clearWordTimerLoop();
     }
 
     /* ─────────────────────────────────────────────────────
@@ -624,7 +1057,9 @@
       clearInterval(drainTimer);
       drainTimer = setInterval(() => {
         if (!gameRunning || paused || resuming) return;
-        const drain = 1 + Math.max(0, (wave - 1) * 0.25);
+        const base = 0.82 + Math.max(0, (wave - 1) * 0.22);
+        const mult = gameMode === "rampup" ? 0.52 : 1;
+        const drain = base * mult;
         integrity = Math.max(0, integrity - drain);
         updateStats();
         if (integrity <= 0) endGame();
@@ -679,8 +1114,8 @@
 
       // ESC: toggle pause menu (not during resume countdown or game over)
       if (e.key === 'Escape') {
-        if (resuming) return; // ignore during countdown
-        if (gameRunning && !gameOverScreen.classList.contains('hidden') === false) return;
+        if (resuming) return;
+        if (!gameOverScreen.classList.contains('hidden')) return;
         if (gameRunning) {
           if (paused) {
             resumeFromPause();
@@ -702,7 +1137,6 @@
           return;
         }
         if (!gameRunning) {
-          startGame();
           return;
         }
       }
@@ -740,10 +1174,16 @@
       gameArea.classList.add('game-blurred');
       titleBar.classList.add('game-blurred');
 
-      // Update wave goal text
-      const bestWave = Math.max(wave, Math.floor((Number(localStorage.getItem('sb_bestWave')) || 0)));
-      const goalWave = Math.max(bestWave + 1, 10);
-      pauseWaveGoal.textContent = `Reach wave ${goalWave} for a new high score!`;
+      if (gameMode === "rampup") {
+        const need = rampSectorWordGoal(rampSectorIndex);
+        const left = Math.max(0, need - rampWordsDone);
+        pauseWaveGoal.textContent =
+          "STEP " + (rampSectorIndex + 1) + "/" + RAMP_LEVELS.length + " · " + left + " word(s) left this step";
+      } else {
+        const bestWave = Math.max(wave, Math.floor((Number(localStorage.getItem('sb_bestWave')) || 0)));
+        const goalWave = Math.max(bestWave + 1, 10);
+        pauseWaveGoal.textContent = `Reach wave ${goalWave} for a new high score!`;
+      }
 
       pauseMenu.classList.remove('hidden');
     }
@@ -787,9 +1227,12 @@
       gameArea.classList.remove('game-blurred');
       titleBar.classList.remove('game-blurred');
       cleanupTimers();
+      const savedMode = gameMode;
       gameRunning = false;
       restartGame();
-      startGame();
+      gameMode = savedMode;
+      modeBar.classList.add('hidden');
+      startGameCore();
     }
 
     function quitToMenu() {
@@ -811,7 +1254,7 @@
           endGame();
         }
       } else {
-        location.reload();
+        restartGame();
       }
     }
 
@@ -821,6 +1264,7 @@
     function cleanupTimers() {
       clearInterval(drainTimer);
       clearTimeout(comboDecayTimer);
+      clearWordTimerLoop();
     }
 
     /* ─────────────────────────────────────────────────────
@@ -828,7 +1272,7 @@
        ───────────────────────────────────────────────────── */
     function showInstructions(callback) {
       // Show instructions for first-time players
-      const seen = localStorage.getItem('sb_instructionsSeen_v12');
+      const seen = localStorage.getItem("sb_instructionsSeen_v16");
       if (seen) {
         callback();
         return;
@@ -844,47 +1288,64 @@
         if (countdown <= 0) {
           clearInterval(cdTimer);
           instructionsOverlay.classList.add('hidden');
-          localStorage.setItem('sb_instructionsSeen_v12', '1');
+          localStorage.setItem("sb_instructionsSeen_v16", "1");
           callback();
         } else {
           cdEl.textContent = `AUTO-STARTING IN ${countdown}...`;
         }
       }, 1000);
 
-      // Click to skip
-      instructionsOverlay.addEventListener('click', () => {
-        clearInterval(cdTimer);
-        instructionsOverlay.classList.add('hidden');
-        localStorage.setItem('sb_instructionsSeen_v12', '1');
-        callback();
-      }, { once: true });
+      instructionsOverlay.addEventListener(
+        "click",
+        () => {
+          clearInterval(cdTimer);
+          instructionsOverlay.classList.add("hidden");
+          localStorage.setItem("sb_instructionsSeen_v16", "1");
+          callback();
+        },
+        { once: true },
+      );
     }
 
-    function startGame() {
+    function startGameCore() {
       initAudio();
-      showInstructions(() => {
-        document.getElementById('start-btn').classList.add('hidden');
-        gameRunning = true;
-        paused = false;
-        resuming = false;
-        score = 0;
-        integrity = 100;
-        wave = 1;
-        accuracy = 100;
-        combo = 1;
-        wordsCleared = 0;
-        totalTyped = 0;
-        totalCorrect = 0;
-        typed = "";
-        recentWords = [];
-        lastSuccessTime = Date.now();
+      modeBar.classList.add("hidden");
+      gameRunning = true;
+      paused = false;
+      resuming = false;
+      score = 0;
+      integrity = 100;
+      wave = 1;
+      accuracy = 100;
+      combo = 1;
+      wordsCleared = 0;
+      totalTyped = 0;
+      totalCorrect = 0;
+      typed = "";
+      recentWords = [];
+      lastSuccessTime = Date.now();
 
-        updateStats();
-        nextWord();
-        startDrain();
-        resetComboDecay();
-        hiddenInput.focus();
-      });
+      if (gameMode === "rampup") {
+        rampSectorIndex = 0;
+        rampWordsDone = 0;
+        rampScore = 0;
+        rampStepWords = [];
+        wordTimerRow.classList.remove("hidden");
+        rampBannerEl.classList.remove("hidden");
+        showRampBanner();
+      } else {
+        wordTimerRow.classList.add("hidden");
+        rampBannerEl.classList.add("hidden");
+        clearWordTimerLoop();
+      }
+
+      updateStats();
+      updateWaveLabelUI();
+      updateRampHud();
+      nextWord();
+      startDrain();
+      resetComboDecay();
+      hiddenInput.focus();
     }
 
     function endGame() {
@@ -900,41 +1361,86 @@
 
       sfxGameOver();
 
-      // Save high score
       if (score > highScore) {
         highScore = score;
-        localStorage.setItem('sb_highScore', String(Math.floor(highScore)));
+        localStorage.setItem("sb_highScore", String(Math.floor(highScore)));
       }
 
-      // Save best wave
-      const prevBestWave = Number(localStorage.getItem('sb_bestWave') || 0);
+      const prevBestWave = Number(localStorage.getItem("sb_bestWave") || 0);
       if (wave > prevBestWave) {
-        localStorage.setItem('sb_bestWave', String(wave));
+        localStorage.setItem("sb_bestWave", String(wave));
       }
 
-      // Save run history (last 5)
       saveRunHistory();
 
-      updateStats();
+      try {
+        if (window.parent !== window) {
+          window.parent.postMessage({ type: "highscore", score: Math.floor(highScore) }, "*");
+        }
+      } catch (e) {}
 
-      finalScoreEl.innerHTML = `
-        FINAL TRANSMISSION<br>
-        <span class="text-6xl neon-cyan">${Math.floor(score)} PTS</span><br>
-        WAVE ${wave} &bull; ACC ${Math.floor(accuracy)}% &bull; WORDS ${wordsCleared}<br>
-        <span class="text-sm text-cyan-400/60 mt-2 block">HIGH SCORE: ${Math.floor(highScore)}</span>
-      `;
-      gameOverScreen.classList.remove('hidden');
+      updateStats();
+      updateRampHud();
+
+      const modeLine =
+        gameMode === "rampup"
+          ? "RAMP UP RUN"
+          : "FREEPLAY";
+      const waveLine =
+        gameMode === "rampup"
+          ? "STEP " + (rampSectorIndex + 1) + "/" + RAMP_LEVELS.length
+          : "WAVE " + wave;
+      finalScoreEl.innerHTML =
+        "FINAL TRANSMISSION<br>" +
+        '<span class="text-6xl neon-cyan">' +
+        Math.floor(score) +
+        " PTS</span><br>" +
+        "<span class=\"text-lg text-pink-300/90\">" +
+        modeLine +
+        "</span><br>" +
+        waveLine +
+        " &bull; ACC " +
+        Math.floor(accuracy) +
+        "% &bull; WORDS " +
+        wordsCleared +
+        "<br>" +
+        '<span class="text-sm text-cyan-400/60 mt-2 block">HIGH SCORE: ' +
+        Math.floor(highScore) +
+        "</span>";
+      gameOverScreen.classList.remove("hidden");
+      wordTimerRow.classList.add("hidden");
+      rampBannerEl.classList.add("hidden");
+      rampParagraphWrap.classList.add("hidden");
+      targetWordEl.classList.remove("hidden");
+      sectorProgressWrap.classList.add("hidden");
+      freeplayAsideHint.classList.add("hidden");
+      clearWordTimerLoop();
     }
 
     function restartGame() {
-      gameOverScreen.classList.add('hidden');
-      document.getElementById('start-btn').classList.remove('hidden');
+      gameOverScreen.classList.add("hidden");
+      sectorClearOverlay.classList.add("hidden");
+      rampVictoryEl.classList.add("hidden");
+      modeBar.classList.remove("hidden");
+      gameMode = null;
+      gameRunning = false;
       hiddenInput.value = "";
       typed = "";
       targetWordEl.innerHTML = "";
       typedDisplayEl.innerHTML = "";
+      rampStepWords = [];
+      rampParagraphEl.innerHTML = "";
+      rampParagraphWrap.classList.add("hidden");
+      targetWordEl.classList.remove("hidden");
       feedback.textContent = "";
-      gameContainer.classList.remove('danger-pulse');
+      gameContainer.classList.remove("danger-pulse");
+      wordTimerRow.classList.add("hidden");
+      rampBannerEl.classList.add("hidden");
+      sectorProgressWrap.classList.add("hidden");
+      freeplayAsideHint.classList.add("hidden");
+      waveLabelEl.textContent = "WAVE";
+      waveEl.textContent = "1";
+      clearWordTimerLoop();
     }
 
     /* ─────────────────────────────────────────────────────
@@ -959,7 +1465,8 @@
     window.onload = () => {
       highScore = Number(localStorage.getItem('sb_highScore') || 0);
       updateStats();
-      console.log("%cSIGNAL BREACH v1.2 ONLINE — TYPE TO SURVIVE", "color:#67e8f9;font-size:18px");
+      console.log("%cSIGNAL BREACH v1.6 ONLINE — FREEPLAY + RAMP UP (8-STEP BLOCK)", "color:#67e8f9;font-size:18px");
+      updateWaveLabelUI();
     };
   </script>
 </body>

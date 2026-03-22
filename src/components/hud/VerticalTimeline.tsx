@@ -13,14 +13,14 @@ export function VerticalTimeline() {
 
   return (
     <nav
-      className="fixed right-4 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col items-center gap-0"
+      className="fixed right-4 top-1/2 -translate-y-1/2 z-40 hidden lg:flex flex-col items-center gap-0"
       aria-label="Section navigation"
     >
       {/* Glowing vertical track line */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-2 bottom-2 w-px bg-neon-cyan/10">
+      <div className="absolute left-1/2 -translate-x-1/2 top-2 bottom-2 w-px bg-neon-cyan/12">
         {/* Progress fill */}
         <motion.div
-          className="absolute top-0 left-0 w-full bg-gradient-to-b from-neon-cyan/60 to-neon-purple/40 origin-top"
+          className="absolute top-0 left-0 w-full bg-gradient-to-b from-neon-cyan/55 to-neon-purple/35 origin-top"
           style={{ height: `${scrollProgress * 100}%` }}
           transition={{ duration: 0.1 }}
         />

@@ -4,12 +4,13 @@ import { Send, Mail, Linkedin, MapPin, CheckCircle, Radio, Download } from "luci
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Toaster, toast } from "sonner";
+import { toast } from "sonner";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { HoloCard } from "@/components/ui/HoloCard";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Button } from "@/components/ui/Button";
 import { bio } from "@/data/bio";
+import { navCodename } from "@/data/navSections";
 import { cn } from "@/lib/utils";
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -25,10 +26,10 @@ const contactSchema = z.object({
 
 type ContactForm = z.infer<typeof contactSchema>;
 
-// ── EmailJS config — replace with your actual IDs ───────────────────────────
-const EMAILJS_SERVICE_ID = "service_boc1dxx";
-const EMAILJS_TEMPLATE_ID = "template_n35vsjo";
-const EMAILJS_PUBLIC_KEY = "WmdpVeh2gIDlOHFzO";
+// ── EmailJS config — env-first with fallback for local continuity ───────────
+const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || "service_boc1dxx";
+const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || "template_n35vsjo";
+const EMAILJS_PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || "WmdpVeh2gIDlOHFzO";
 
 /** Animated signal strength meter */
 function SignalStrengthMeter({ active }: { active: boolean }) {
@@ -190,18 +191,16 @@ export function Contact() {
     "w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-slate-200 placeholder:text-slate-600 font-mono focus:outline-none focus:border-neon-cyan/50 focus:shadow-[0_0_12px_rgba(0,245,255,0.1)] transition-all";
 
   return (
-    <section id="contact" className="max-w-6xl mx-auto px-6 py-24" aria-label="Contact section">
-      <Toaster position="top-right" />
-
+    <section id="contact" className="section-shell" aria-label="Contact section">
       <AnimatedSection>
         <SectionHeader
-          codename="// 06"
+          codename={navCodename("contact")}
           label="Uplink Terminal"
-          sub="Send a signal — I reply fast"
+          sub="Primary contact channel plus direct links"
         />
       </AnimatedSection>
 
-      <div className="grid md:grid-cols-5 gap-8">
+      <div className="grid md:grid-cols-5 gap-8 md:gap-10">
         {/* Form */}
         <AnimatedSection className="md:col-span-3" delay={0.05}>
           <HoloCard padding="p-7">

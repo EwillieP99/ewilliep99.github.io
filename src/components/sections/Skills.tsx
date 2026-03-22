@@ -1,52 +1,163 @@
-import { useRef, useState, useEffect } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { Monitor, Brain, TrendingUp, Users, Megaphone, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useInView,
+  type Variants,
+} from "framer-motion";
+import { Monitor, Brain, TrendingUp, Megaphone, X } from "lucide-react";
 import { AnimatedSection } from "@/components/ui/AnimatedSection";
 import { HoloCard } from "@/components/ui/HoloCard";
+import { Magnetic } from "@/components/ui/Magnetic";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { skillGroups, type SkillGroup, type Skill } from "@/data/skills";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
+import {
+  skillCapabilities,
+  SKILL_DOMAIN_META,
+  SKILL_DOMAIN_ORDER,
+  type SkillCapability,
+  type SkillDomain,
+} from "@/data/skills";
+import { navCodename } from "@/data/navSections";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { filterChipClass, hudType } from "@/lib/sectionTypography";
+
+const neonEase = [0.22, 1, 0.36, 1] as const;
+
+/** Grid list: stagger children on enter; quick blur fade on filter exit */
+function skillsListVariants(reduced: boolean): Variants {
+  if (reduced) {
+    return {
+      hidden: { opacity: 1 },
+      visible: { opacity: 1, transition: { duration: 0 } },
+      listExit: { opacity: 1, transition: { duration: 0 } },
+    };
+  }
+  return {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.07, delayChildren: 0.06 },
+    },
+    listExit: {
+      opacity: 0,
+      y: -8,
+      filter: "blur(4px)",
+      transition: { duration: 0.2, ease: neonEase },
+    },
+  };
+}
+
+/** Single card: “signal lock” blur resolve */
+function skillsCardVariants(reduced: boolean): Variants {
+  if (reduced) {
+    return {
+      hidden: { opacity: 1, y: 0, filter: "blur(0px)" },
+      visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0 } },
+    };
+  }
+  return {
+    hidden: { opacity: 0, y: 20, filter: "blur(10px)" },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { duration: 0.5, ease: neonEase },
+    },
+  };
+}
+
+function modalStaggerRootVariants(reduced: boolean): Variants {
+  if (reduced) {
+    return {
+      hidden: {},
+      visible: { transition: { duration: 0 } },
+    };
+  }
+  return {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.06, delayChildren: 0.12 },
+    },
+  };
+}
+
+function modalSectionVariants(reduced: boolean): Variants {
+  if (reduced) {
+    return {
+      hidden: { opacity: 1, y: 0, filter: "blur(0px)" },
+      visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 0 } },
+    };
+  }
+  return {
+    hidden: { opacity: 0, y: 10, filter: "blur(4px)" },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: { duration: 0.35, ease: neonEase },
+    },
+  };
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// AUGMENTATIONS — Skill groups with horizontal bar charts + detail modals
+// SKILLS — strongest capabilities (core + strong) with optional domain filter
 // ═══════════════════════════════════════════════════════════════════════════════
 
-// Map icon names to Lucide components
 const iconMap: Record<string, typeof Monitor> = {
   Monitor,
   Brain,
   TrendingUp,
-  Users,
   Megaphone,
 };
 
-/** Skill detail modal */
-function SkillDetailModal({
-  skill,
-  color,
+const STRENGTH_ORDER = { core: 0, strong: 1, working: 2 } as const;
+
+/** Skill cards + modal (shares HUD scale with Mission Archive) */
+const skillType = {
+  overline: hudType.overline,
+  pill: `${hudType.monoPill} text-slate-400`,
+  title: hudType.cardTitle,
+  summary: hudType.cardBody,
+  evidence: hudType.cardMeta,
+  toolChip: hudType.toolChip,
+} as const;
+
+function CapabilityModal({
+  capability,
   onClose,
 }: {
-  skill: Skill | null;
-  color: string;
+  capability: SkillCapability | null;
   onClose: () => void;
 }) {
-  const trapRef = useFocusTrap<HTMLDivElement>(skill !== null);
+  const trapRef = useFocusTrap<HTMLDivElement>(capability !== null);
+  const prefersReduced = useReducedMotion();
+  const color = capability ? SKILL_DOMAIN_META[capability.domain].color : "#00f5ff";
+  const modalRoot = useMemo(
+    () => modalStaggerRootVariants(prefersReduced),
+    [prefersReduced],
+  );
+  const modalSection = useMemo(
+    () => modalSectionVariants(prefersReduced),
+    [prefersReduced],
+  );
 
   useEffect(() => {
-    if (!skill) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    if (!capability) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
     window.addEventListener("keydown", handler);
     document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", handler);
       document.body.style.overflow = "";
     };
-  }, [skill, onClose]);
+  }, [capability, onClose]);
 
   return (
     <AnimatePresence>
-      {skill && (
+      {capability && (
         <motion.div
           ref={trapRef}
           className="fixed inset-0 z-[60] flex items-center justify-center px-4"
@@ -60,85 +171,79 @@ function SkillDetailModal({
           <div className="fixed inset-0 bg-navy-950/80 backdrop-blur-sm" onClick={onClose} />
           <motion.div
             className="relative z-10 w-full max-w-sm rounded-xl border bg-navy-950/95 backdrop-blur-2xl overflow-hidden"
-            style={{ borderColor: `${color}30` }}
+            style={{ borderColor: `${SKILL_DOMAIN_META[capability.domain].color}30` }}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* Top glow */}
             <div
               className="absolute top-0 left-4 right-4 h-px"
               style={{ background: `linear-gradient(90deg, transparent, ${color}60, transparent)` }}
             />
 
-            <div className="p-6">
-              <button
-                onClick={onClose}
-                autoFocus
-                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-slate-500 hover:text-slate-200 transition-colors"
-                aria-label="Close"
+            <div className="p-6 relative">
+              <Magnetic
+                className="absolute top-3 right-3 z-20 inline-flex"
+                innerClassName="inline-flex"
               >
-                <X size={14} />
-              </button>
-
-              {/* Skill ring */}
-              <div className="flex items-center gap-4 mb-5">
-                <div
-                  className="w-16 h-16 rounded-full p-[3px] flex-shrink-0"
-                  style={{
-                    background: `conic-gradient(${color} ${skill.proficiency}%, rgba(255,255,255,0.06) 0%)`,
-                    boxShadow: `0 0 20px ${color}30`,
-                  }}
+                <button
+                  onClick={onClose}
+                  autoFocus
+                  className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-slate-500 hover:text-slate-200 transition-colors"
+                  aria-label="Close"
                 >
-                  <div className="w-full h-full rounded-full bg-navy-950 flex items-center justify-center">
-                    <span className="text-sm font-bold font-mono" style={{ color }}>
-                      {skill.proficiency}%
-                    </span>
+                  <X size={14} />
+                </button>
+              </Magnetic>
+
+              <motion.div
+                key={capability.id}
+                className="relative"
+                initial="hidden"
+                animate="visible"
+                variants={modalRoot}
+              >
+                <motion.div variants={modalSection} className="flex items-center gap-4 mb-5 pr-10">
+                  <span
+                    className={`px-2 py-1 rounded-full border border-white/10 shrink-0 ${skillType.pill}`}
+                  >
+                    {capability.strength}
+                  </span>
+                  <div className="min-w-0">
+                    <h3 id="skill-detail-title" className={skillType.title}>
+                      {capability.title}
+                    </h3>
+                    <p className={`mt-1 ${skillType.overline}`}>
+                      {SKILL_DOMAIN_META[capability.domain].label}
+                    </p>
                   </div>
-                </div>
-                <div>
-                  <h3 id="skill-detail-title" className="text-lg font-bold text-slate-100 font-display">{skill.label}</h3>
-                  <p className="text-xs font-mono text-slate-500 mt-0.5">
-                    {skill.proficiency >= 90
-                      ? "Core Skill"
-                      : skill.proficiency >= 70
-                        ? "Proficient"
-                        : "Familiar"}
+                </motion.div>
+
+                <motion.div variants={modalSection} className="mb-4 space-y-2">
+                  <p className={skillType.overline}>Summary</p>
+                  <p className={skillType.summary}>{capability.summary}</p>
+                </motion.div>
+
+                <motion.div variants={modalSection} className="space-y-2">
+                  <p className={skillType.overline}>Tools</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {capability.tools.map((tool) => (
+                      <span key={tool} className={skillType.toolChip}>
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+
+                <motion.div variants={modalSection} className="mt-4 space-y-2">
+                  <p className={skillType.evidence}>
+                    <span className="text-neon-cyan font-medium">Evidence: </span>
+                    {capability.evidence}
                   </p>
-                </div>
-              </div>
-
-              {/* Used in */}
-              <div className="mb-4">
-                <p className="text-[10px] font-mono uppercase tracking-widest mb-2" style={{ color: `${color}99` }}>
-                  Used In
-                </p>
-                <p className="text-sm text-slate-300">{skill.usedIn}</p>
-              </div>
-
-              {/* Proficiency bar */}
-              <div>
-                <p className="text-[10px] font-mono uppercase tracking-widest text-slate-600 mb-2">
-                  Proficiency Level
-                </p>
-                <div
-                  className="h-1.5 rounded-full bg-white/5 overflow-hidden"
-                  role="progressbar"
-                  aria-valuenow={skill.proficiency}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={`${skill.label} proficiency: ${skill.proficiency}%`}
-                >
-                  <motion.div
-                    className="h-full rounded-full"
-                    style={{ background: color }}
-                    initial={{ width: 0 }}
-                    animate={{ width: `${skill.proficiency}%` }}
-                    transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                  />
-                </div>
-              </div>
+                  <p className={skillType.evidence}>{capability.recentUse}</p>
+                </motion.div>
+              </motion.div>
             </div>
           </motion.div>
         </motion.div>
@@ -147,113 +252,65 @@ function SkillDetailModal({
   );
 }
 
-/** A single skill row with animated horizontal bar */
-function SkillBar({
-  skill,
-  color,
-  delay,
+function CapabilityCard({
+  capability,
   onClick,
+  cardVariants,
 }: {
-  skill: Skill;
-  color: string;
-  delay: number;
+  capability: SkillCapability;
   onClick: () => void;
+  cardVariants: Variants;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-20px" });
-  const prefersReduced = useReducedMotion();
+  const meta = SKILL_DOMAIN_META[capability.domain];
+  const Icon = iconMap[meta.icon] || Monitor;
 
   return (
-    <div
-      ref={ref}
-      className="group flex items-center gap-3 py-1.5 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-white/[0.03] transition-colors"
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter") onClick(); }}
-      aria-label={`${skill.label}: ${skill.proficiency}% — ${skill.usedIn}`}
-    >
-      {/* Skill name */}
-      <span className="text-sm text-slate-300 group-hover:text-slate-100 transition-colors w-[140px] sm:w-[160px] shrink-0 truncate">
-        {skill.label}
-      </span>
-
-      {/* Bar */}
-      <div className="flex-1 h-[6px] rounded-full bg-white/[0.06] overflow-hidden">
-        <motion.div
-          className="h-full rounded-full"
-          style={{
-            background: color,
-            boxShadow: `0 0 8px ${color}30`,
-          }}
-          initial={{ width: 0 }}
-          animate={isInView ? { width: `${skill.proficiency}%` } : { width: 0 }}
-          transition={
-            prefersReduced
-              ? { duration: 0 }
-              : { duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }
-          }
-        />
-      </div>
-
-      {/* Percentage */}
-      <span
-        className="text-xs font-mono shrink-0 w-9 text-right"
-        style={{ color }}
-      >
-        {skill.proficiency}%
-      </span>
-    </div>
-  );
-}
-
-/** One skill category group card with bar chart */
-function SkillGroupCard({
-  group,
-  index,
-  onSkillClick,
-}: {
-  group: SkillGroup;
-  index: number;
-  onSkillClick: (skill: Skill, color: string) => void;
-}) {
-  const Icon = iconMap[group.icon] || Monitor;
-
-  return (
-    <AnimatedSection delay={index * 0.1}>
-      <HoloCard padding="p-6" className="h-full" glowColor={hexToRgb(group.color)}>
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-5">
-          <div
-            className="p-2 rounded-lg"
-            style={{ background: `${group.color}15`, border: `1px solid ${group.color}30` }}
-          >
-            <Icon size={18} style={{ color: group.color }} />
+    <motion.div className="h-full min-h-0" variants={cardVariants}>
+      <HoloCard padding="p-6" className="h-full min-h-0 cursor-pointer" glowColor={hexToRgb(meta.color)}>
+        <Magnetic
+          className="flex min-h-0 w-full min-w-0 flex-1 flex-col"
+          innerClassName="flex min-h-0 w-full min-w-0 flex-1 flex-col"
+        >
+        <button
+          type="button"
+          className="flex min-h-0 w-full flex-1 flex-col gap-4 text-left"
+          onClick={onClick}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="shrink-0 rounded-lg p-2"
+              style={{ background: `${meta.color}15`, border: `1px solid ${meta.color}30` }}
+            >
+              <Icon size={16} style={{ color: meta.color }} />
+            </div>
+            <p className={`min-w-0 flex-1 ${skillType.overline}`}>{meta.label}</p>
+            <span
+              className={`ml-auto shrink-0 rounded-full border border-white/10 px-2 py-1 ${skillType.pill}`}
+            >
+              {capability.strength}
+            </span>
           </div>
-          <h3 className="font-semibold text-slate-200 font-display">{group.label}</h3>
-          <span className="ml-auto text-[10px] font-mono text-slate-600">
-            {group.skills.length} skills
-          </span>
-        </div>
 
-        {/* Skill bars */}
-        <div className="flex flex-col gap-0.5">
-          {group.skills.map((skill, i) => (
-            <SkillBar
-              key={skill.label}
-              skill={skill}
-              color={group.color}
-              delay={i * 0.06}
-              onClick={() => onSkillClick(skill, group.color)}
-            />
-          ))}
-        </div>
+          <div className="flex min-h-0 flex-1 flex-col gap-3">
+            <h3 className={skillType.title}>{capability.title}</h3>
+            <p className={skillType.summary}>{capability.summary}</p>
+            <p className={skillType.evidence}>{capability.evidence}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {capability.tools.slice(0, 4).map((tool) => (
+              <span key={tool} className={skillType.toolChip}>
+                {tool}
+              </span>
+            ))}
+          </div>
+        </button>
+        </Magnetic>
       </HoloCard>
-    </AnimatedSection>
+    </motion.div>
   );
 }
 
-/** Convert hex color to "r, g, b" string for HoloCard */
 function hexToRgb(hex: string): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -261,38 +318,120 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
+/** Filter-keyed grid: in-view stagger enter, AnimatePresence exit on domain change */
+function SkillsFilteredGrid({
+  domain,
+  capabilities,
+  onSelect,
+}: {
+  domain: SkillDomain | "all";
+  capabilities: SkillCapability[];
+  onSelect: (c: SkillCapability) => void;
+}) {
+  const prefersReduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-12%" });
+  const listVar = useMemo(() => skillsListVariants(prefersReduced), [prefersReduced]);
+  const cardVar = useMemo(() => skillsCardVariants(prefersReduced), [prefersReduced]);
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        ref={ref}
+        key={domain}
+        className="section-card-grid md:grid-cols-2"
+        initial="hidden"
+        animate={isInView ? "visible" : "hidden"}
+        exit="listExit"
+        variants={listVar}
+      >
+        {capabilities.map((capability) => (
+          <CapabilityCard
+            key={capability.id}
+            capability={capability}
+            onClick={() => onSelect(capability)}
+            cardVariants={cardVar}
+          />
+        ))}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+/** Surface core + strong only; drop “working” depth from the grid */
+function strongestCapabilities(): SkillCapability[] {
+  return skillCapabilities
+    .filter((c) => c.strength === "core" || c.strength === "strong")
+    .sort((a, b) => {
+      const da = STRENGTH_ORDER[a.strength];
+      const db = STRENGTH_ORDER[b.strength];
+      if (da !== db) return da - db;
+      const oa = SKILL_DOMAIN_ORDER.indexOf(a.domain);
+      const ob = SKILL_DOMAIN_ORDER.indexOf(b.domain);
+      if (oa !== ob) return oa - ob;
+      return a.title.localeCompare(b.title);
+    });
+}
+
 export function Skills() {
-  const [selectedSkill, setSelectedSkill] = useState<{ skill: Skill; color: string } | null>(null);
+  const [domain, setDomain] = useState<SkillDomain | "all">("all");
+  const [selected, setSelected] = useState<SkillCapability | null>(null);
+
+  const base = useMemo(() => strongestCapabilities(), []);
+
+  const visible = useMemo(() => {
+    if (domain === "all") return base;
+    return base.filter((c) => c.domain === domain);
+  }, [base, domain]);
 
   return (
     <>
-      <section id="augmentations" className="max-w-6xl mx-auto px-6 py-24" aria-label="Skills section">
+      <section id="augmentations" className="section-shell" aria-label="Skills section">
         <AnimatedSection>
           <SectionHeader
-            codename="// 03"
-            label="Augmentations"
-            sub="33 skills across 5 domains — click any skill for details"
+            codename={navCodename("augmentations")}
+            label="Skills"
+            sub="Where I’m strongest — core capabilities with proof"
           />
         </AnimatedSection>
 
-        <div className="grid md:grid-cols-2 gap-5">
-          {skillGroups.map((group, i) => (
-            <SkillGroupCard
-              key={group.id}
-              group={group}
-              index={i}
-              onSkillClick={(skill, color) => setSelectedSkill({ skill, color })}
-            />
-          ))}
-        </div>
+        <AnimatedSection delay={0.05}>
+          <p className="type-overline">Filter</p>
+          <div className="flex flex-wrap gap-2 section-toolbar-gap">
+            <Magnetic className="inline-flex" innerClassName="inline-flex">
+              <button
+                type="button"
+                onClick={() => setDomain("all")}
+                className={filterChipClass(domain === "all")}
+              >
+                All
+              </button>
+            </Magnetic>
+            {SKILL_DOMAIN_ORDER.map((id) => {
+              const meta = SKILL_DOMAIN_META[id];
+              return (
+                <Magnetic key={id} className="inline-flex" innerClassName="inline-flex">
+                  <button
+                    type="button"
+                    onClick={() => setDomain(id)}
+                    className={filterChipClass(domain === id)}
+                  >
+                    {meta.label}
+                  </button>
+                </Magnetic>
+              );
+            })}
+          </div>
+        </AnimatedSection>
+
+        <SkillsFilteredGrid
+          domain={domain}
+          capabilities={visible}
+          onSelect={setSelected}
+        />
       </section>
 
-      {/* Skill Detail Modal */}
-      <SkillDetailModal
-        skill={selectedSkill?.skill ?? null}
-        color={selectedSkill?.color ?? "#00f5ff"}
-        onClose={() => setSelectedSkill(null)}
-      />
+      <CapabilityModal capability={selected} onClose={() => setSelected(null)} />
     </>
   );
 }

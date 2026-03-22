@@ -3,92 +3,121 @@
 // 5 consolidated categories with proficiency + usage context
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export interface Skill {
-  label: string;
-  proficiency: number; // 0-100
-  usedIn: string;      // Short context tag
-}
+export type SkillDomain = "gtm" | "ai" | "technical" | "leadership";
 
-export interface SkillGroup {
+/** Row order for matrix / terminal summaries */
+export const SKILL_DOMAIN_ORDER: SkillDomain[] = ["gtm", "ai", "technical", "leadership"];
+
+export interface SkillCapability {
   id: string;
-  label: string;
-  icon: string; // Lucide icon name
-  color: string; // Neon color for the group
-  skills: Skill[];
+  title: string;
+  domain: SkillDomain;
+  strength: "core" | "strong" | "working";
+  summary: string;
+  tools: string[];
+  evidence: string;
+  recentUse: string;
 }
 
-export const skillGroups: SkillGroup[] = [
+export const SKILL_DOMAIN_META: Record<
+  SkillDomain,
+  { label: string; color: string; icon: "TrendingUp" | "Brain" | "Monitor" | "Megaphone" }
+> = {
+  gtm: { label: "GTM & Sales", color: "#f472b6", icon: "TrendingUp" },
+  ai: { label: "AI Adoption", color: "#a855f7", icon: "Brain" },
+  technical: { label: "Technical Build", color: "#00f5ff", icon: "Monitor" },
+  leadership: { label: "Leadership", color: "#22c55e", icon: "Megaphone" },
+};
+
+export const skillCapabilities: SkillCapability[] = [
   {
-    id: "technical",
-    label: "Technical Skills",
-    icon: "Monitor",
-    color: "#00f5ff",
-    skills: [
-      { label: "Python", proficiency: 80, usedIn: "Data scripting, automation, FastAPI" },
-      { label: "Excel & Tableau", proficiency: 85, usedIn: "Analytics, dashboards, reporting" },
-      { label: "Generative AI Tools", proficiency: 92, usedIn: "Perplexity, ChatGPT, Claude daily" },
-      { label: "AI Prompt Engineering", proficiency: 90, usedIn: "Workflow automation, content gen" },
-      { label: "CRM Tools", proficiency: 85, usedIn: "Salesforce, HubSpot pipeline mgmt" },
-      { label: "Notion Systems", proficiency: 95, usedIn: "Life OS, team docs, workflow design" },
-      { label: "Data Analysis", proficiency: 82, usedIn: "Visualization, reporting, insights" },
-      { label: "React & TypeScript", proficiency: 85, usedIn: "Portfolio, Resonate, web projects" },
-      { label: "Next.js", proficiency: 75, usedIn: "Resonate full-stack app" },
-    ],
+    id: "pipeline-design",
+    title: "Pipeline Architecture",
+    domain: "gtm",
+    strength: "core",
+    summary: "Design outbound systems that consistently create qualified meetings.",
+    tools: ["HubSpot", "Salesforce", "Apollo", "Notion"],
+    evidence: "$110K ARR generated in one semester at Geotarget.",
+    recentUse: "Built segmented outreach and qualification loops for B2B SaaS accounts.",
   },
   {
-    id: "gtm-sales",
-    label: "GTM & Sales",
-    icon: "TrendingUp",
-    color: "#f472b6",
-    skills: [
-      { label: "B2B Prospecting", proficiency: 95, usedIn: "$110K ARR at Geotarget" },
-      { label: "Cold Outreach", proficiency: 95, usedIn: "Multi-channel pipeline building" },
-      { label: "Pipeline Development", proficiency: 90, usedIn: "B2B SaaS sales cycles" },
-      { label: "Objection Handling", proficiency: 90, usedIn: "Demo delivery, deal closing" },
-      { label: "Lead Qualification", proficiency: 88, usedIn: "SDR frameworks, scoring" },
-      { label: "ARR Generation", proficiency: 92, usedIn: "$110K in one semester" },
-      { label: "Sales Workflow Optimization", proficiency: 85, usedIn: "CRM + AI automation" },
-    ],
+    id: "sales-messaging",
+    title: "Sales Messaging and Objection Handling",
+    domain: "gtm",
+    strength: "strong",
+    summary: "Translate technical value into clear buyer outcomes and risk reduction.",
+    tools: ["Discovery scripts", "Call frameworks", "Demo narratives"],
+    evidence: "Maintained strong conversion and response quality across multiple channels.",
+    recentUse: "Iterated messaging for technical and non-technical stakeholders.",
   },
   {
-    id: "community",
-    label: "Community & Programs",
-    icon: "Users",
-    color: "#22c55e",
-    skills: [
-      { label: "Ambassador Program Design", proficiency: 92, usedIn: "Perplexity campus network" },
-      { label: "Onboarding Playbooks", proficiency: 90, usedIn: "8 university rollouts" },
-      { label: "Event Execution", proficiency: 93, usedIn: "500+ attendee AI mixer" },
-      { label: "Stakeholder Management", proficiency: 88, usedIn: "12 partners, 5 sponsors" },
-      { label: "University Partnerships", proficiency: 85, usedIn: "5 campus programs" },
-      { label: "Tabling & Career Fairs", proficiency: 88, usedIn: "Direct student outreach" },
-    ],
+    id: "workshop-growth",
+    title: "Workshop-Driven Growth",
+    domain: "ai",
+    strength: "core",
+    summary: "Use live education events to convert interest into active usage.",
+    tools: ["Live demos", "Prompt templates", "Follow-up sequences"],
+    evidence: "400+ users activated at a 67% conversion rate across 15 workshops.",
+    recentUse: "Ran AI training sessions for mixed audiences at UF.",
   },
   {
-    id: "ai-adoption",
-    label: "AI Adoption & Education",
-    icon: "Brain",
-    color: "#a855f7",
-    skills: [
-      { label: "Workshop Facilitation", proficiency: 92, usedIn: "15 workshops, 600+ students" },
-      { label: "AI Use Case Translation", proficiency: 90, usedIn: "CS, Business, Engineering audiences" },
-      { label: "Conversion Optimization", proficiency: 88, usedIn: "67% trial-to-signup rate" },
-      { label: "Cross-disciplinary Outreach", proficiency: 85, usedIn: "AI Club, multi-org events" },
-      { label: "Agentic Workflows", proficiency: 75, usedIn: "LLM orchestration, tool use" },
-      { label: "LLM Evaluation", proficiency: 72, usedIn: "Model selection, benchmarking" },
-    ],
+    id: "ai-translation",
+    title: "AI Use-Case Translation",
+    domain: "ai",
+    strength: "strong",
+    summary: "Turn abstract model capabilities into practical workflows for teams.",
+    tools: ["Prompt chains", "Automation maps", "Task decomposition"],
+    evidence: "Helped cross-discipline audiences adopt AI with immediate practical wins.",
+    recentUse: "Built role-based playbooks for students and operators.",
   },
   {
-    id: "leadership",
-    label: "Leadership & Comms",
-    icon: "Megaphone",
-    color: "#f59e0b",
-    skills: [
-      { label: "Team Recruiting & Coaching", proficiency: 90, usedIn: "15+ ambassadors managed" },
-      { label: "Performance Management", proficiency: 85, usedIn: "KPI tracking, feedback loops" },
-      { label: "Panel Moderation", proficiency: 82, usedIn: "AI mixer, campus events" },
-      { label: "Public Speaking", proficiency: 88, usedIn: "Workshops, demos, pitches" },
-      { label: "Cross-functional Comms", proficiency: 85, usedIn: "Org leads, sponsors, faculty" },
-    ],
+    id: "frontend-systems",
+    title: "Frontend Systems",
+    domain: "technical",
+    strength: "strong",
+    summary: "Build polished interfaces with maintainable React and TypeScript architecture.",
+    tools: ["React", "TypeScript", "Tailwind", "Framer Motion"],
+    evidence: "Designed and shipped this portfolio with custom UI systems and interactions.",
+    recentUse: "Refactored navigation, themes, and interactive terminal/chat experiences.",
+  },
+  {
+    id: "backend-systems",
+    title: "Backend Systems",
+    domain: "technical",
+    strength: "strong",
+    summary: "Ship Supabase backends with auth, storage, and realtime; structure day-to-day execution in linked Notion databases.",
+    tools: ["Supabase", "PostgreSQL", "Notion databases", "FastAPI"],
+    evidence: "Resonate: Supabase Postgres, Auth, Storage, Realtime, and migrations. Notion Life OS: linked DBs for missions, goals, and reviews.",
+    recentUse: "Schema design, RLS-minded access patterns, and keeping app state aligned with durable stores.",
+  },
+  {
+    id: "workflow-automation",
+    title: "Workflow Automation",
+    domain: "technical",
+    strength: "working",
+    summary: "Automate repetitive operations using scripts and AI-assisted workflows.",
+    tools: ["Python", "Node", "Notion", "LLM APIs"],
+    evidence: "Reduced cognitive overhead through repeatable workflow templates.",
+    recentUse: "Automating prompt-based research and communication tasks.",
+  },
+  {
+    id: "community-ops",
+    title: "Community Program Operations",
+    domain: "leadership",
+    strength: "core",
+    summary: "Coordinate multi-team programs with clear ownership and execution rhythms.",
+    tools: ["Program briefs", "Partner syncs", "Event operating plans"],
+    evidence: "Led 500+ attendee AI mixer with 8 orgs, 12 partners, and 5 sponsors.",
+    recentUse: "Scaling cross-org initiatives through clearer operational cadences.",
+  },
+  {
+    id: "public-speaking",
+    title: "Public Speaking and Facilitation",
+    domain: "leadership",
+    strength: "strong",
+    summary: "Present technical topics in practical language for broad audiences.",
+    tools: ["Workshop decks", "Live Q&A", "Narrative framing"],
+    evidence: "Consistently delivered high-attendance workshops and panel sessions.",
+    recentUse: "Facilitating AI education sessions with recruiter and student audiences.",
   },
 ];

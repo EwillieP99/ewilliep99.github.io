@@ -7,10 +7,13 @@ import { SECTION_PROMPTS } from "@/data/echoPrompts";
 import { EchoChat, type Message } from "./EchoChat";
 import { EchoInput } from "./EchoInput";
 import { EchoOrb } from "./EchoOrb";
+import { isLightTheme, parseSavedTheme, type ThemeMode } from "@/lib/theme";
+import type { SectionId } from "@/data/navSections";
+import { SECTION_LABELS } from "@/lib/sectionLabels";
 
 /* ── Constants ─────────────────────────────────────────────────────────── */
 
-const STORAGE_KEY = "echo-ai-messages";
+const STORAGE_KEY = "echo-ai-messages-v2";
 const MAX_HISTORY = 10; // max exchanges sent to API
 const TYPEWRITER_SPEED = 18;
 
@@ -23,7 +26,7 @@ const GREETING: Message = {
 
 function loadMessages(): Message[] {
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored) as Message[];
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -36,13 +39,29 @@ function loadMessages(): Message[] {
 
 function saveMessages(msgs: Message[]) {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
   } catch {
     // ignore quota errors
   }
 }
 
 /* ── SSE stream parser ─────────────────────────────────────────────────── */
+
+/** Lightweight “mood” for chrome / Matrix rain — heuristic only, no extra API */
+function dispatchEchoMoodFromReply(content: string) {
+  const lower = content.toLowerCase();
+  let mood: "hype" | "calm" | "focus" = "focus";
+  if (
+    /\b(love|awesome|incredible|excited|fantastic|great|excellent|perfect)\b/.test(lower)
+  ) {
+    mood = "hype";
+  } else if (
+    /\b(calm|careful|slowly|pause|step|patience|steady|think)\b/.test(lower)
+  ) {
+    mood = "calm";
+  }
+  window.dispatchEvent(new CustomEvent("echo-mood", { detail: { mood } }));
+}
 
 function parseSSEChunk(chunk: string): string {
   let content = "";
@@ -79,22 +98,22 @@ export default function EchoAI() {
   // Context-aware prompts
   const { activeId } = useNavigation();
   const prompts = SECTION_PROMPTS[activeId] ?? SECTION_PROMPTS.default;
+  const echoSectionLabel = SECTION_LABELS[activeId as SectionId] ?? "Site";
 
-  // Detect clean theme
+  // Light themes (clean UI for Echo chrome)
   const [isClean, setIsClean] = useState(false);
   useEffect(() => {
+    const readTheme = (): ThemeMode =>
+      parseSavedTheme(document.querySelector("[data-theme]")?.getAttribute("data-theme") ?? null);
     const observer = new MutationObserver(() => {
-      const theme = document.querySelector("[data-theme]")?.getAttribute("data-theme");
-      setIsClean(theme === "clean");
+      setIsClean(isLightTheme(readTheme()));
     });
     observer.observe(document.body.parentElement!, {
       attributes: true,
       subtree: true,
       attributeFilter: ["data-theme"],
     });
-    // Initial check
-    const theme = document.querySelector("[data-theme]")?.getAttribute("data-theme");
-    setIsClean(theme === "clean");
+    setIsClean(isLightTheme(readTheme()));
     return () => observer.disconnect();
   }, []);
 
@@ -121,6 +140,34 @@ export default function EchoAI() {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  useEffect(() => {
+    const openHandler = () => setIsOpen(true);
+    window.addEventListener("open-echo", openHandler);
+    return () => window.removeEventListener("open-echo", openHandler);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const id = requestAnimationFrame(() => {
+      document.querySelector<HTMLTextAreaElement>("textarea[data-echo-input]")?.focus({
+        preventScroll: true,
+      });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isOpen]);
 
   // Typewriter interval for greeting
   useEffect(() => {
@@ -171,13 +218,13 @@ export default function EchoAI() {
         }));
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
+      const timeout = setTimeout(() => controller.abort(), 20000);
 
       try {
         const response = await fetch("/api/echo", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: apiMessages, stream: true }),
+          body: JSON.stringify({ messages: apiMessages, stream: true, activeSection: activeId }),
           signal: controller.signal,
         });
 
@@ -242,6 +289,7 @@ export default function EchoAI() {
             return copy;
           });
           setStreamingIndex(null);
+          dispatchEchoMoodFromReply(fullContent);
         } else {
           // Fallback: non-streaming
           const data = await response.json();
@@ -256,12 +304,13 @@ export default function EchoAI() {
           setMessages(updated);
           setTypingIndex(updated.length - 1);
           setDisplayedChars(0);
+          dispatchEchoMoodFromReply(aiReply);
         }
       } catch (error) {
         clearTimeout(timeout);
         const errMsg =
           (error as Error).name === "AbortError"
-            ? "Request timed out. Try again."
+            ? "Request timed out. Try again or simplify the question."
             : error instanceof Error
             ? error.message
             : "Unknown error";
@@ -279,7 +328,7 @@ export default function EchoAI() {
 
       setLoading(false);
     },
-    [messages, loading, typingIndex],
+    [messages, loading, typingIndex, activeId],
   );
 
   const handleRetry = useCallback(
@@ -305,13 +354,7 @@ export default function EchoAI() {
   const handleCopy = (content: string, index: number) => {
     navigator.clipboard.writeText(content);
     setCopiedIndex(index);
-    toast.success("Copied to clipboard", {
-      style: {
-        background: "#0a0a0a",
-        border: "1px solid #00f5ff",
-        color: "#00f5ff",
-      },
-    });
+    toast.success("Copied to clipboard");
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
@@ -319,7 +362,7 @@ export default function EchoAI() {
     setMessages([{ ...GREETING, timestamp: Date.now() }]);
     setTypingIndex(null);
     setStreamingIndex(null);
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
@@ -332,45 +375,113 @@ export default function EchoAI() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/95 p-0 sm:p-4"
+            className={
+              isClean
+                ? "fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 sm:p-4"
+                : "fixed inset-0 z-[10000] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-[2px] p-0 sm:p-4"
+            }
             onClick={() => setIsOpen(false)}
+            data-native-cursor
           >
             <motion.div
-              initial={{ scale: 0.92, y: 20 }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="echo-dialog-title"
+              initial={{ scale: 0.96, y: 16 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.92, y: 20 }}
-              className="w-full h-full sm:h-auto sm:max-h-[90vh] max-w-3xl bg-black border-0 sm:border-2 border-cyan-400/60 sm:rounded-2xl overflow-hidden shadow-[0_0_80px_#22f0ff] flex flex-col"
+              exit={{ scale: 0.96, y: 16 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className={
+                isClean
+                  ? "w-full h-full sm:h-auto sm:max-h-[90vh] max-w-lg bg-white border border-slate-200/80 sm:rounded-2xl overflow-hidden shadow-xl flex flex-col"
+                  : "w-full h-full sm:h-auto sm:max-h-[90vh] max-w-3xl bg-zinc-950 border-0 sm:border border-white/10 sm:rounded-2xl overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.55)] flex flex-col"
+              }
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
-              <div className="bg-zinc-950 border-b border-cyan-400 p-3 sm:p-5 flex items-center justify-between shrink-0">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-3 h-3 sm:w-4 sm:h-4 bg-green-400 rounded-full animate-pulse" />
-                  <div>
-                    <div className="font-mono text-base sm:text-xl tracking-[4px] sm:tracking-[6px] text-cyan-400">
-                      ECHO AI v2.0
+              <div
+                className={
+                  isClean
+                    ? "border-b border-slate-200 px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between shrink-0 bg-slate-50/80"
+                    : "border-b border-white/10 px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between shrink-0 bg-black/40"
+                }
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span
+                    className={
+                      isClean
+                        ? "h-2 w-2 rounded-full bg-emerald-500 shrink-0"
+                        : "h-2 w-2 rounded-full bg-emerald-400 shrink-0 shadow-[0_0_8px_rgba(52,211,153,0.6)]"
+                    }
+                    aria-hidden
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div
+                      id="echo-dialog-title"
+                      className={
+                        isClean
+                          ? "font-semibold text-slate-800 text-sm sm:text-base tracking-tight truncate"
+                          : "font-mono text-sm sm:text-base text-slate-100 tracking-tight truncate"
+                      }
+                    >
+                      Echo
                     </div>
-                    <div className="text-[9px] sm:text-[10px] text-cyan-400/60">
-                      NEON CORE • NAVIGATOR POWERED • STREAMING
+                    <div
+                      className={
+                        isClean
+                          ? "mt-1 flex flex-wrap items-center gap-2"
+                          : "mt-1 flex flex-wrap items-center gap-2"
+                      }
+                    >
+                      <span
+                        className={
+                          isClean
+                            ? "text-[11px] text-slate-500 truncate"
+                            : "text-[10px] text-slate-500 font-mono truncate"
+                        }
+                      >
+                        Portfolio assistant · streaming
+                      </span>
+                      <span
+                        className={
+                          isClean
+                            ? "shrink-0 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-medium text-slate-600"
+                            : "shrink-0 rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[9px] font-mono uppercase tracking-wide text-slate-400"
+                        }
+                      >
+                        {echoSectionLabel}
+                      </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <kbd className="hidden sm:inline-block text-[9px] text-cyan-400/40 border border-cyan-400/20 rounded px-1.5 py-0.5 font-mono">
+                <div className="flex items-center gap-2 shrink-0">
+                  <kbd
+                    className={
+                      isClean
+                        ? "hidden sm:inline text-[10px] text-slate-400 border border-slate-200 rounded px-1.5 py-0.5 font-mono"
+                        : "hidden sm:inline text-[10px] text-slate-500 border border-white/10 rounded px-1.5 py-0.5 font-mono"
+                    }
+                  >
                     `
                   </kbd>
                   <button
+                    type="button"
                     onClick={() => setIsOpen(false)}
-                    className="text-cyan-400 hover:text-white p-1"
+                    className={
+                      isClean
+                        ? "text-slate-400 hover:text-slate-700 p-1.5 rounded-lg border border-transparent transition-all hover:border-sky-300/50 hover:bg-slate-100/80 hover:shadow-neon-cyan-soft"
+                        : "text-slate-400 hover:text-white p-1.5 rounded-lg border border-transparent transition-all hover:border-neon-cyan/25 hover:shadow-neon-cyan-soft"
+                    }
                     autoFocus
+                    aria-label="Close Echo"
                   >
-                    <X size={24} className="sm:hidden" />
-                    <X size={28} className="hidden sm:block" />
+                    <X size={22} className="sm:hidden" />
+                    <X size={24} className="hidden sm:block" />
                   </button>
                 </div>
               </div>
 
               <EchoChat
+                isClean={isClean}
                 messages={messages}
                 loading={loading}
                 streamingIndex={streamingIndex}
@@ -382,6 +493,7 @@ export default function EchoAI() {
               />
 
               <EchoInput
+                isClean={isClean}
                 onSend={sendMessage}
                 loading={loading}
                 activeId={activeId}

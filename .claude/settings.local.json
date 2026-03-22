@@ -17,7 +17,9 @@
       "Bash(grep \"\"version\"\":*)",
       "Bash(rm:*)",
       "Bash(test:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ]
   },
   "spinnerTipsEnabled": false
