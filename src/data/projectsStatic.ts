@@ -157,6 +157,40 @@ export const staticProjects: Project[] = [
     },
   },
   {
+    id: "neural-nexus-vault",
+    title: "Neural Nexus Vault (Obsidian + WSL)",
+    description:
+      "A living second brain in Obsidian — numbered project zones, Mission Control dashboards, a changelog database, and templates that turn notes into an operating system. Paired with WSL2 for a Linux-native dev loop on Windows: smoother tooling, fewer path surprises, and a single environment for shipping this portfolio and adjacent repos.",
+    tags: ["Obsidian", "WSL2", "Markdown", "Dataview", "PKM", "Systems"],
+    type: "card",
+    metrics: [
+      { label: "Vault zones", value: "8+" },
+      { label: "Dev environment", value: "WSL2" },
+      { label: "Ops layer", value: "Changelog DB" },
+    ],
+    links: [{ label: "Live portfolio", href: "https://ethanpecora.com" }],
+    featured: true,
+    impact: "PKM + infra practice — show how I structure work and level up the toolchain",
+    category: "systems",
+    status: "active",
+    liveUrl: "https://ethanpecora.com",
+    dossier: {
+      fullDescription:
+        "Neural Nexus is my Obsidian vault for execution: daily and weekly rhythms, active projects under 03_Projects, a knowledge base, and AI-facing context so agents stay aligned. Recent work includes a **changelog database** (atomic entries + Dataview + per-project registry), **Project Hub** templates, and scaffolding so every mission has a hub note and filtered history. It’s where I practice *systems thinking as software* — structured frontmatter, wikilinks, and queries instead of ad-hoc docs.\n\nOn the **WSL** side, the breakthrough is treating Windows as the shell and Linux as the engine: Node, npm, git, and builds run in a consistent Linux toolchain while files sync cleanly across drives. That cut friction for this portfolio (Vite + Vercel), multi-repo layouts, and terminal-first workflows — closer to what production Linux CI expects.\n\nTogether, Obsidian + WSL is a visible **SWE progression** story: not just shipping features, but tightening the loop between planning, execution, and shipping — the same habits I bring to product teams.",
+      results: [
+        { label: "Vault structure", value: "Zones + Mission Control" },
+        { label: "Changelog", value: "Atomic + Dataview" },
+        { label: "Tooling", value: "WSL2 + Linux dev loop" },
+        { label: "Through-line", value: "Portfolio ↔ vault" },
+      ],
+      debrief: [
+        "A second brain only works when it’s easier than memory — templates and queries lower the cost of staying honest.",
+        "WSL isn’t just convenience; it’s alignment with how servers and CI run your code.",
+        "Showing the vault + toolchain on the portfolio proves I can document and ship in the same breath.",
+      ],
+    },
+  },
+  {
     id: "neon-nexus",
     title: "Neon Nexus (Portfolio OS)",
     description:
@@ -164,7 +198,7 @@ export const staticProjects: Project[] = [
     tags: ["React 19", "TypeScript", "R3F", "Tailwind v4", "Vercel"],
     type: "card",
     metrics: [
-      { label: "Mission archive", value: "6" },
+      { label: "Mission archive", value: "7" },
       { label: "Echo AI", value: "SSE stream" },
       { label: "3D hero", value: "R3F + drei" },
     ],

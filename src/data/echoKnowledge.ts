@@ -4,8 +4,8 @@
  */
 export const ECHO_KNOWLEDGE = `
 PORTFOLIO & PROJECTS:
-- Mission Archive lists 6 missions on the site, including this portfolio itself (Neon Nexus): React 19 + TypeScript + Vite 6, Tailwind CSS v4, Framer Motion 12, React Three Fiber hero, SSE Echo AI (Vercel + Navigator / Llama 3.1 70B), Signal Breach arcade launcher
-- Other missions include Resonate (UF wellness app), Notion Life OS, Perplexity Comet dashboards, Campus GTM Playbook, and personal AI workflow stack
+- Mission Archive lists 7 missions on the site, including this portfolio itself (Neon Nexus): React 19 + TypeScript + Vite 6, Tailwind CSS v4, Framer Motion 12, React Three Fiber hero, SSE Echo AI (Vercel + Navigator / Llama 3.1 70B), Signal Breach arcade launcher
+- Other missions include Resonate (UF wellness app), Notion Life OS, Perplexity Comet dashboards, Campus GTM Playbook, personal AI workflow stack, and Neural Nexus Vault (Obsidian second brain + WSL2 dev workflow — changelog DB, Mission Control, project templates)
 - Arcade: Signal Breach — browser typing-defense (Freeplay + Ramp Up: 8 steps, words per step 1·3·5·8·13·21·34·50 shown as one on-screen block per step). A second arcade card is reserved for a future experiment (not shipped yet)
 - A separate Phaser tower-defense experiment (Verdant Siege) exists in the repo under public/games but is not linked from the live arcade cards
 - Echo AI (this chat) is powered by Navigator API (UF's LLM infrastructure) running Llama 3.1 70B
