@@ -1,9 +1,14 @@
-name: Build and Deploy to GitHub Pages
+name: Deploy redirect to ethanpecora.com
+
+# v1 sunset (2026-06): this site is retired. The personal site moved to the v2
+# Astro project served at https://ethanpecora.com. The old Vite SPA build was
+# replaced with a static redirect (redirect/index.html) so existing links and
+# search results forward to the new domain instead of 404ing.
 
 on:
   push:
-    branches: [main]      # triggers whenever you push to main
-  workflow_dispatch:       # lets you trigger manually from GitHub UI
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,38 +21,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Build Vite app
-        run: npm run build
-        env:
-          NODE_ENV: production
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "./dist"
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Stage redirect as the published site
+        run: |
+          mkdir -p _site
+          cp redirect/index.html _site/index.html
+          cp redirect/index.html _site/404.html
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./_site"
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
